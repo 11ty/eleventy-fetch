@@ -1,0 +1,53 @@
+{
+  "name": "@11ty/eleventy-cache-assets",
+  "version": "1.0.0",
+  "description": "Cache remote assets, locally (automatically).",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "eleventy-cache-assets.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/11ty"
+  },
+  "keywords": [
+    "eleventy",
+    "eleventy-plugin"
+  ],
+  "author": {
+    "name": "Zach Leatherman",
+    "email": "zachleatherman@gmail.com",
+    "url": "https://zachleat.com/"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/11ty/eleventy-cache-assets/issues"
+  },
+  "homepage": "https://github.com/11ty/eleventy-cache-assets#readme",
+  "peerDependencies": {
+    "@11ty/eleventy": ">=0.10.0"
+  },
+  "devDependencies": {
+    "ava": "^3.7.1"
+  },
+  "dependencies": {
+    "flat-cache": "^2.0.1",
+    "node-fetch": "^2.6.0",
+    "short-hash": "^1.0.0"
+  },
+  "ava": {
+    "failFast": true,
+    "files": [
+      "./test/*.js"
+    ],
+    "ignoredByWatcher": [
+      "**/.cache/**"
+    ]
+  }
+}
