@@ -8,5 +8,5 @@ const saveLocal = require(".");
 	let font = await saveLocal("https://www.zachleat.com/web/css/fonts/lato/2.0/LatoLatin-Regular.ttf", { duration: "1d" });
 
 	let json = await saveLocal("https://opencollective.com/11ty/members/all.json", { duration: "1d", type: "json" });
-	console.log( json );
+	console.log( JSON.stringify(json).substr(0, 100), "… (truncated)" );
 })();

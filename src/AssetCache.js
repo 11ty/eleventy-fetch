@@ -4,6 +4,7 @@ const path = require("path");
 const fetch = require("node-fetch");
 const shorthash = require("short-hash");
 const flatCache = require("flat-cache");
+const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
 	constructor(url, cacheDirectory) {
@@ -87,12 +88,28 @@ class AssetCache {
 		return this.cache.getKey(this.url);
 	}
 
-	alreadyCached(duration) {
-		if(!duration) {
+	needsToFetch(duration) {
+		if(!this.cachedObject) { // not cached
+			return true;
+		} else if(!duration || duration === "*") {
+			// no duration specified (plugin default is 1d, but if this is falsy assume infinite)
+			// "*" is infinite duration
 			return false;
 		}
 
-		return this.cachedObject && (duration === "*" || (Date.now() - this.cachedObject.cachedAt < this.getDurationMs(duration)));
+		debug("Cache check for: %o (duration: %o)", this.url, duration);
+
+		let compareDuration = this.getDurationMs(duration);
+		let expiration = this.cachedObject.cachedAt + compareDuration;
+		let expirationRelative = Math.abs(Date.now() - expiration);
+
+		if(expiration > Date.now()) {
+			debug("Cache okay, expires in %o s (%o)", expirationRelative/1000, new Date(expiration));
+			return false;
+		}
+
+		debug("Cache expired %o s ago (%o)", expirationRelative/1000, new Date(expiration));
+		return true;
 	}
 
 	convertTo(buffer, type) {
@@ -107,7 +124,7 @@ class AssetCache {
 	}
 
 	async fetch(options = {}) {
-		let needsToFetch = !this.alreadyCached(options && options.duration || this.defaultDuration);
+		let needsToFetch = this.needsToFetch(options && options.duration || this.defaultDuration);
 
 		if( needsToFetch === false ) {
 			return this.convertTo(Buffer.from(this.cachedObject.buffer), options.type);
@@ -117,7 +134,7 @@ class AssetCache {
 				recursive: true
 			});
 
-			console.log( `eleventy-img fetching ${this.url}` );
+			console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
 			let response = await fetch(this.url);
 			if(!response.ok) {
 				throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)

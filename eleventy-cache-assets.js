@@ -2,8 +2,7 @@ const AssetCache = require("./src/AssetCache");
 
 const globalOptions = {
 	type: "buffer",
-	directory: ".cache",
-	offlineMode: false,
+	directory: ".cache"
 };
 
 function isFullUrl(url) {
@@ -17,11 +16,6 @@ function isFullUrl(url) {
 }
 
 async function saveLocal(url, options) {
-	if(options.offlineMode) {
-		// do nothing
-		return;
-	}
-
 	if(!isFullUrl(url)) {
 		throw new Error("Caching an already local asset is not yet supported.")
 	}
