@@ -40,6 +40,7 @@
     "debug": "^4.1.1",
     "flat-cache": "^2.0.1",
     "node-fetch": "^2.6.0",
+    "p-queue": "^6.3.0",
     "short-hash": "^1.0.0"
   },
   "ava": {

@@ -38,6 +38,14 @@ DEBUG=EleventyCacheAssets* node your-node-script.js
 DEBUG=EleventyCacheAssets* npx @11ty/eleventy
 ```
 
+### Change Global Plugin Concurrency
+
+```js
+const CacheAsset = require("@11ty/eleventy-cache-assets");
+CacheAsset.concurrency = 4; // default is 10
+```
+
+
 ## Features
 
 ## Roadmap

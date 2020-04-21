@@ -1,12 +1,31 @@
 const saveLocal = require(".");
 
 (async () => {
-	let img = await saveLocal("https://www.zachleat.com/img/avatar-2017-big.png", { duration: "1d" });
+	saveLocal.concurrency = 2;
+	let options = {
+		duration: "1d"
+	};
 
-	let imgWithoutExt = await saveLocal("https://twitter.com/zachleat/profile_image?size=bigger", { duration: "1d" });
+	let promises = [];
 
-	let font = await saveLocal("https://www.zachleat.com/web/css/fonts/lato/2.0/LatoLatin-Regular.ttf", { duration: "1d" });
+	// don’t await here to test concurrency
+	promises.push(saveLocal("https://www.zachleat.com/img/avatar-2017-big.png", options));
 
-	let json = await saveLocal("https://opencollective.com/11ty/members/all.json", { duration: "1d", type: "json" });
-	console.log( JSON.stringify(json).substr(0, 100), "… (truncated)" );
+	promises.push(saveLocal("https://twitter.com/eleven_ty/profile_image?size=bigger", options));
+	promises.push(saveLocal("https://twitter.com/nejsconf/profile_image?size=bigger", options));
+	promises.push(saveLocal("https://twitter.com/nebraskajs/profile_image?size=bigger", options));
+	promises.push(saveLocal("https://twitter.com/netlify/profile_image?size=bigger", options));
+	promises.push(saveLocal("https://twitter.com/zachleat/profile_image?size=bigger", options));
+
+	promises.push(saveLocal("https://www.zachleat.com/web/css/fonts/lato/2.0/LatoLatin-Regular.ttf", options));
+
+	let json = saveLocal("https://opencollective.com/11ty/members/all.json", {
+		duration: options.duration,
+		type: "json"
+	});
+	promises.push(json);
+
+	await Promise.all(promises);
+
+	console.log( JSON.stringify(await json).substr(0, 100), "… (truncated)" );
 })();
