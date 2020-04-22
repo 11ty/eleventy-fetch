@@ -2,29 +2,34 @@ const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 const path = require("path");
 const fetch = require("node-fetch");
-const shorthash = require("short-hash");
 const flatCache = require("flat-cache");
 const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
-	constructor(url, cacheDirectory) {
-		this.url = url;
+	constructor(uniqueKey, cacheDirectory) {
+		this.hash = uniqueKey;
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
 	}
 
-	get url() {
-		return this._url;
+	get source() {
+		return this._source;
 	}
 
-	set url(url) {
-		let urlHash = shorthash(url);
-		if(urlHash !== this.urlHash) {
+	set source(source) {
+		this._source = source;
+	}
+
+	get hash() {
+		return this._hash;
+	}
+
+	set hash(value) {
+		if(value !== this._hash) {
 			this._cacheLocationDirty = true;
 		}
 
-		this.urlHash = urlHash;
-		this._url = url;
+		this._hash = value;
 	}
 
 	get cacheDirectory() {
@@ -40,7 +45,7 @@ class AssetCache {
 	}
 
 	get cacheFilename() {
-		return `eleventy-cache-assets-${this.urlHash}`;
+		return `eleventy-cache-assets-${this.hash}`;
 	}
 
 	get cachePath() {
@@ -75,17 +80,34 @@ class AssetCache {
 		return durationValue * durationMultiplier * 1000;
 	}
 
-	save(buffer) {
+	save(contents, type) {
 		let cache = this.cache;
-		cache.setKey(this.url, {
+		cache.setKey(this.hash, {
 			cachedAt: Date.now(),
-			buffer: buffer.toJSON()
+			type: type,
+			contents: contents
 		});
 		cache.save();
 	}
 
+	getCachedValue() {
+		let type = this.cachedObject.type;
+		if(type === "json") {
+			return this.cachedObject.contents;
+		} else if(type === "text") {
+			return this.cachedObject.contents.toString();
+		}
+
+		// buffer
+		return Buffer.from(this.cachedObject.contents);
+	}
+
+	isCacheValid(duration) {
+		return this.needsToFetch(duration || this.defaultDuration) === false;
+	}
+
 	get cachedObject() {
-		return this.cache.getKey(this.url);
+		return this.cache.getKey(this.hash);
 	}
 
 	needsToFetch(duration) {
@@ -97,7 +119,7 @@ class AssetCache {
 			return false;
 		}
 
-		debug("Cache check for: %o (duration: %o)", this.url, duration);
+		debug("Cache check for: %o (duration: %o)", this.source, duration);
 
 		let compareDuration = this.getDurationMs(duration);
 		let expiration = this.cachedObject.cachedAt + compareDuration;
@@ -112,50 +134,15 @@ class AssetCache {
 		return true;
 	}
 
-	convertTo(buffer, type) {
-		if(type === "json") {
-			return JSON.parse(buffer.toString());
+	async fetch(options) {
+		if( this.isCacheValid(options.duration) ) {
+			return this.getCachedValue();
 		}
-		if(type === "text") {
-			return buffer.toString();
-		}
-		// default is type "buffer"
-		return buffer;
-	}
 
-	async fetch(options = {}) {
-		let needsToFetch = this.needsToFetch(options && options.duration || this.defaultDuration);
+		this.save(this.source, options.type);
 
-		if( needsToFetch === false ) {
-			return this.convertTo(Buffer.from(this.cachedObject.buffer), options.type);
-		} else {
-			// make cacheDirectory if it does not exist.
-			await fsp.mkdir(this.cacheDirectory, {
-				recursive: true
-			});
+		return asset;
 
-			let body;
-			try {
-				let response = await fetch(this.url, options.fetchOptions || {});
-				if(!response.ok) {
-					throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)
-				}
-
-				body = await response.buffer();
-				console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
-				this.save(body);
-			} catch(e) {
-				if(this.cachedObject) {
-					console.log( `Error fetching ${this.url}. Message: ${e.message}`);
-					console.log( `Failing gracefully with an expired cache entry.` );
-					body = Buffer.from(this.cachedObject.buffer);
-				} else {
-					return Promise.reject(e);
-				}
-			}
-
-			return this.convertTo(body, options.type);
-		}
 	}
 }
 module.exports = AssetCache;

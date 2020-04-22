@@ -1,4 +1,5 @@
 const saveLocal = require(".");
+const AssetCache = saveLocal.AssetCache;
 
 (async () => {
 	saveLocal.concurrency = 2;
@@ -24,6 +25,16 @@ const saveLocal = require(".");
 		type: "json"
 	});
 	promises.push(json);
+
+	let asset = new AssetCache("twitter-followers-eleven_ty");
+	if(asset.isCacheValid("4d")) {
+		console.log( "Found cached value" );
+		console.log( asset.getCachedValue() );
+	} else {
+		console.log( "Saving value" );
+		asset.save({ followers: 42 }, "json");
+	}
+
 
 	await Promise.all(promises);
 

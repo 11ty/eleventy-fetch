@@ -1,6 +1,7 @@
 const {default: PQueue} = require("p-queue");
 const debug = require("debug")("EleventyCacheAssets");
 
+const RemoteAssetCache = require("./src/RemoteAssetCache");
 const AssetCache = require("./src/AssetCache");
 
 const globalOptions = {
@@ -20,13 +21,12 @@ function isFullUrl(url) {
 	}
 }
 
-
-async function saveLocal(url, options) {
-	if(!isFullUrl(url)) {
-		throw new Error("Caching an already local asset is not yet supported.")
+async function save(source, options) {
+	if(!isFullUrl(source)) {
+		return Promise.reject(new Error("Caching an already local asset is not yet supported."));
 	}
 
-	let asset = new AssetCache(url, options.directory);
+	let asset = new RemoteAssetCache(source, options.directory);
 	return asset.fetch(options);
 }
 
@@ -39,13 +39,12 @@ queue.on("active", () => {
 	debug( `Concurrency: ${queue.concurrency}, Size: ${queue.size}, Pending: ${queue.pending}` );
 });
 
-
-function queueSaveLocal(url, opts) {
+function queueSave(source, opts) {
 	let options = Object.assign({}, globalOptions, opts);
-	return queue.add(() => saveLocal(url, options));
+	return queue.add(() => save(source, options));
 }
 
-module.exports = queueSaveLocal;
+module.exports = queueSave;
 
 Object.defineProperty(module.exports, "concurrency", {
 	get: function() {
@@ -55,3 +54,7 @@ Object.defineProperty(module.exports, "concurrency", {
 		queue.concurrency = concurrency;
 	},
 });
+
+// TODO make advanced manual things work with the queue too
+module.exports.RemoteAssetCache = RemoteAssetCache;
+module.exports.AssetCache = AssetCache;
