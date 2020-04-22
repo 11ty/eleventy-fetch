@@ -3,7 +3,7 @@ const saveLocal = require(".");
 (async () => {
 	saveLocal.concurrency = 2;
 	let options = {
-		duration: "1d"
+		duration: "4h"
 	};
 
 	let promises = [];

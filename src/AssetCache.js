@@ -134,14 +134,26 @@ class AssetCache {
 				recursive: true
 			});
 
-			console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
-			let response = await fetch(this.url);
-			if(!response.ok) {
-				throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)
+			let body;
+			try {
+				let response = await fetch(this.url, options.fetchOptions || {});
+				if(!response.ok) {
+					throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)
+				}
+
+				body = await response.buffer();
+				console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
+				this.save(body);
+			} catch(e) {
+				if(this.cachedObject) {
+					console.log( `Error fetching ${this.url}. Message: ${e.message}`);
+					console.log( `Failing gracefully with an expired cache entry.` );
+					body = Buffer.from(this.cachedObject.buffer);
+				} else {
+					return Promise.reject(e);
+				}
 			}
 
-			let body = await response.buffer();
-			this.save(body);
 			return this.convertTo(body, options.type);
 		}
 	}

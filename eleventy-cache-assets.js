@@ -6,7 +6,8 @@ const AssetCache = require("./src/AssetCache");
 const globalOptions = {
 	type: "buffer",
 	directory: ".cache",
-	concurrency: 10
+	concurrency: 10,
+	fetchOptions: {}
 };
 
 function isFullUrl(url) {
