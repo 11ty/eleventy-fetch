@@ -18,7 +18,38 @@ let json = await CacheAsset(url, {
 	duration: "1d",
 	type: "json"
 });
-// Use imageBuffer as an input to the `sharp` plugin, for example
+```
+
+### Change the Cache Duration
+
+The `duration` option currently supports values with the following shorthand values:
+
+* `s` is seconds
+* `m` is minutes
+* `h` is hours
+* `d` is days
+* `w` is weeks (7 days)
+* `y` is 365 days (about 1 year)
+
+### Handle failure gracefully
+
+Note that this will only apply if the first request fails (and no cache exists). If a failure happens and a cached entry already exists (even if it’s expired), it will use the cached entry.
+
+```js
+async function fetchData() {
+	try {
+		let url = "https://api.github.com/repos/11ty/eleventy";
+		/* promise */
+		return CacheAsset(url, {
+			duration: "1d",
+			type: "json"
+		});
+	} catch(e) {
+		return {
+			// my failure fallback data
+		}
+	}
+}
 ```
 
 ### Cache a Remote Image
