@@ -32,7 +32,7 @@ let json = await CacheAsset(url, {
 
 #### Change the Cache Duration
 
-The `duration` option currently supports values with the following shorthand values:
+The `duration` option currently supports the following shorthand values:
 
 * `s` is seconds (e.g. `duration: "43s"`)
 * `m` is minutes (e.g. `duration: "2m"`)
