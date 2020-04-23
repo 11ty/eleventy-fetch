@@ -7,7 +7,7 @@ This can save any kind of asset—JSON, HTML, images, videos, etc.
 * Requires **Node 10+**
 
 * Fetch a remote URL and saves it to a local cache.
-* Control concurrency so we don’t make too many network requests.
+* Control concurrency so we don’t make too many network requests at the same time.
 * If cache expires and the network connection fails, it will still use the cached request.
 
 ## Installation
