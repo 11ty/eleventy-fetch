@@ -28,7 +28,7 @@ This is what [`eleventy-img`](https://github.com/11ty/eleventy-img/) uses intern
 ```js
 const CacheAsset = require("@11ty/eleventy-cache-assets");
 let url = "https://www.zachleat.com/img/avatar-2017-big.png";
-let imageBuffer = await await CacheAsset(url, {
+let imageBuffer = await CacheAsset(url, {
 	duration: "1d",
 	type: "buffer"
 });
@@ -42,7 +42,7 @@ Also a good example of using `fetchOptions` to pass in a custom user agent. Full
 ```js
 const CacheAsset = require("@11ty/eleventy-cache-assets");
 let url = "https://fonts.googleapis.com/css?family=Roboto+Mono:400&display=swap";
-let fontCss = imageBuffer = await await CacheAsset(url, {
+let fontCss = imageBuffer = await CacheAsset(url, {
 	duration: "1d",
 	type: "text",
 	fetchOptions: {
