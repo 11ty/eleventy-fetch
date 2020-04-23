@@ -1,6 +1,8 @@
-# eleventy-asset-cache Plugin
+# eleventy-cache-assets Plugin
 
-Don’t do a network request to your data source on every build! Do it once every hour! Save remote images locally!
+Don’t do a network request to your data source on every build! Do it once every minute, or every hour, or every day!
+
+This can save any kind of asset—JSON, HTML, images, videos, etc.
 
 * Requires **Node 10+**
 
