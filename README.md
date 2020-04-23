@@ -1,4 +1,4 @@
-# eleventy-cache-assets Plugin
+# eleventy-cache-assets
 
 Don’t do a network request to your data source on every build! Do it once every minute, or every hour, or every day!
 
@@ -9,6 +9,12 @@ This can save any kind of asset—JSON, HTML, images, videos, etc.
 * Fetch a remote URL and saves it to a local cache.
 * Control concurrency so we don’t make too many network requests.
 * If cache expires and the network connection fails, it will still use the cached request.
+
+## Installation
+
+```
+npm install @11ty/eleventy-cache-assets
+```
 
 ## Usage
 
