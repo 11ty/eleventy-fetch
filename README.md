@@ -28,16 +28,24 @@ let json = await CacheAsset(url, {
 });
 ```
 
-### Change the Cache Duration
+### Options
+
+#### Change the Cache Duration
 
 The `duration` option currently supports values with the following shorthand values:
 
-* `s` is seconds
-* `m` is minutes
-* `h` is hours
+* `s` is seconds (e.g. `duration: "43s"`)
+* `m` is minutes (e.g. `duration: "2m"`)
+* `h` is hours (e.g. `duration: "99h"`)
 * `d` is days
 * `w` is weeks (7 days)
 * `y` is 365 days (about 1 year)
+
+#### Type
+
+* `type: "json"`
+* `type: "text"`
+* `type: "buffer"` (default: use this for non-text things)
 
 ### Handle failure gracefully
 
