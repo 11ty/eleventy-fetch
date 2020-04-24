@@ -49,7 +49,7 @@ class AssetCache {
 	}
 
 	get cachePath() {
-		return path.join(this.cacheDirectory, this.cacheFilename);
+		return path.join(path.resolve(this.cacheDirectory), this.cacheFilename);
 	}
 
 	get cache() {
@@ -80,18 +80,35 @@ class AssetCache {
 		return durationValue * durationMultiplier * 1000;
 	}
 
-	save(contents, type) {
+	getCachedContentsPath(type = "buffer") {
+		return `${this.cachePath}.${type}`;
+	}
+
+	async save(contents, type = "buffer") {
+		if(type === "json") {
+			contents = JSON.stringify(contents);
+		}
+		// the contents must exist before the cache metadata are saved below
+		await fsp.writeFile(this.getCachedContentsPath(type), contents);
+
 		let cache = this.cache;
 		cache.setKey(this.hash, {
 			cachedAt: Date.now(),
-			type: type,
-			contents: contents
+			type: type
 		});
 		cache.save();
 	}
 
-	getCachedValue() {
-		let type = this.cachedObject.type;
+	async getCachedContents(type) {
+		let contentPath = this.getCachedContentsPath(type);
+		if(type === "json") {
+			return require(contentPath);
+		}
+
+		return fsp.readFile(contentPath, type !== "buffer" ? "utf8" : null);
+	}
+
+	_backwardsCompatibilityGetCachedValue(type) {
 		if(type === "json") {
 			return this.cachedObject.contents;
 		} else if(type === "text") {
@@ -100,6 +117,18 @@ class AssetCache {
 
 		// buffer
 		return Buffer.from(this.cachedObject.contents);
+	}
+
+	async getCachedValue() {
+		let type = this.cachedObject.type;
+
+		// backwards compat with old caches
+		if(this.cachedObject.contents) {
+			return this._backwardsCompatibilityGetCachedValue(type);
+		}
+
+		// promise
+		return this.getCachedContents(type);
 	}
 
 	isCacheValid(duration) {
@@ -119,7 +148,8 @@ class AssetCache {
 			return false;
 		}
 
-		debug("Cache check for: %o (duration: %o)", this.source, duration);
+		debug("Cache check for: %o %o (duration: %o)", this.hash, this.source, duration);
+		debug("Cache object: %o", this.cachedObject);
 
 		let compareDuration = this.getDurationMs(duration);
 		let expiration = this.cachedObject.cachedAt + compareDuration;
@@ -136,10 +166,11 @@ class AssetCache {
 
 	async fetch(options) {
 		if( this.isCacheValid(options.duration) ) {
+			// promise
 			return this.getCachedValue();
 		}
 
-		this.save(this.source, options.type);
+		await this.save(this.source, options.type);
 
 		return asset;
 

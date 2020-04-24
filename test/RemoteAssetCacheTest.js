@@ -1,4 +1,5 @@
 const test = require("ava");
+const path = require("path");
 const fs = require("fs");
 const shorthash = require("short-hash");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
@@ -24,24 +25,22 @@ test("getDurationMs", t => {
 
 test("Local hash file names", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
-	t.is((new RemoteAssetCache(pngUrl)).cachePath, `.cache/eleventy-cache-assets-${shorthash(pngUrl)}`);
+	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(pngUrl)}`));
 
 	let fontUrl = "https://www.zachleat.com/font.woff";
-	t.is((new RemoteAssetCache(fontUrl)).cachePath, `.cache/eleventy-cache-assets-${shorthash(fontUrl)}`);
+	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(fontUrl)}`));
 
 	let fontUrl2 = "https://www.zachleat.com/font.woff2";
-	t.is((new RemoteAssetCache(fontUrl2)).cachePath, `.cache/eleventy-cache-assets-${shorthash(fontUrl2)}`);
+	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(fontUrl2)}`));
 });
 
 test("Local hash without file extension in URL", async t => {
 	let noExt = "https://twitter.com/zachleat/profile_image?size=bigger";
-	t.is((new RemoteAssetCache(noExt)).cachePath, `.cache/eleventy-cache-assets-${shorthash(noExt)}`);
+	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(noExt)}`));
 });
 
 test("Fetching!", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
-	let localUrl = `.cache/${shorthash(pngUrl)}`;
-
 	let ac = new RemoteAssetCache(pngUrl);
 	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
@@ -51,5 +50,6 @@ test("Fetching!", async t => {
 
 	try {
 		await fsp.unlink(ac.cachePath);
+		await fsp.unlink(ac.getCachedContentsPath());
 	} catch(e) {}
 });

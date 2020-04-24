@@ -21,21 +21,13 @@ class RemoteAssetCache extends AssetCache {
 		this._url = url;
 	}
 
-	async getValue(response, type) {
+	async getResponseValue(response, type) {
 		if(type === "json") {
 			return response.json();
 		} else if(type === "text") {
 			return response.text();
 		}
 		return response.buffer();
-	}
-
-	save(contents, type) {
-		if(Buffer.isBuffer(contents)) {
-			super.save(contents.toJSON(), type);
-		} else {
-			super.save(contents, type);
-		}
 	}
 
 	async fetch(options = {}) {
@@ -54,9 +46,9 @@ class RemoteAssetCache extends AssetCache {
 				throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)
 			}
 
-			let body = await this.getValue(response, options.type);
+			let body = await this.getResponseValue(response, options.type);
 			console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
-			this.save(body, options.type);
+			await super.save(body, options.type);
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
