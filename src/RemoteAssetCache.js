@@ -43,7 +43,7 @@ class RemoteAssetCache extends AssetCache {
 		try {
 			let response = await fetch(this.url, options.fetchOptions || {});
 			if(!response.ok) {
-				throw new Error(`Bad response for ${this.url} (${res.status}): ${res.statusText}`)
+				throw new Error(`Bad response for ${this.url} (${response.status}): ${response.statusText}`)
 			}
 
 			let body = await this.getResponseValue(response, options.type);
