@@ -89,7 +89,7 @@ Also a good example of using `fetchOptions` to pass in a custom user agent. Full
 ```js
 const CacheAsset = require("@11ty/eleventy-cache-assets");
 let url = "https://fonts.googleapis.com/css?family=Roboto+Mono:400&display=swap";
-let fontCss = imageBuffer = await CacheAsset(url, {
+let fontCss = await CacheAsset(url, {
 	duration: "1d",
 	type: "text",
 	fetchOptions: {
