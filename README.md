@@ -16,6 +16,12 @@ This can save any kind of asset—JSON, HTML, images, videos, etc.
 npm install @11ty/eleventy-cache-assets
 ```
 
+### Important Security and Privacy Notice
+
+This plugin caches complete network responses. Unless you’re willing to perform a full review of everything this plugin caches to disk for privacy and security exposure, it is _strongly_ recommended that you add the `.cache` folder to your `.gitignore` file so that it doesn’t get checked in to your git repository.
+
+Are you 100% sure that private e-mail addresses aren’t being returned from a cached API? I’m guessing no—just add `.cache` to your `.gitignore`. Right now. Do it.
+
 ## Usage
 
 ### Cache a JSON file from an API
@@ -46,6 +52,17 @@ The `duration` option currently supports the following shorthand values:
 * `type: "json"`
 * `type: "text"`
 * `type: "buffer"` (default: use this for non-text things)
+
+#### Cache Directory
+
+The `directory` option let’s you change where the cache is stored. It is strongly recommended that you add this folder to your `.gitignore` file (per the Security and Privacy Notice above).
+
+```js
+let json = await CacheAsset("https://…", {
+	directory: ".cache"
+});
+```
+
 
 ### Handle failure gracefully
 
