@@ -2,14 +2,14 @@ const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 const path = require("path");
 const fetch = require("node-fetch");
-const shorthash = require("short-hash");
+const sha1 = require("sha1");
 const flatCache = require("flat-cache");
 const AssetCache = require("./AssetCache");
 const debug = require("debug")("EleventyCacheAssets");
 
 class RemoteAssetCache extends AssetCache {
 	constructor(url, cacheDirectory) {
-		super(shorthash(url), cacheDirectory);
+		super(sha1(url), cacheDirectory);
 		this.url = url;
 	}
 

@@ -1,7 +1,7 @@
 const test = require("ava");
 const path = require("path");
 const fs = require("fs");
-const shorthash = require("short-hash");
+const sha1 = require("sha1");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
 let fsp = fs.promises;
@@ -25,18 +25,18 @@ test("getDurationMs", t => {
 
 test("Local hash file names", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
-	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(pngUrl)}`));
+	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${sha1(pngUrl)}`));
 
 	let fontUrl = "https://www.zachleat.com/font.woff";
-	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(fontUrl)}`));
+	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${sha1(fontUrl)}`));
 
 	let fontUrl2 = "https://www.zachleat.com/font.woff2";
-	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(fontUrl2)}`));
+	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${sha1(fontUrl2)}`));
 });
 
 test("Local hash without file extension in URL", async t => {
 	let noExt = "https://twitter.com/zachleat/profile_image?size=bigger";
-	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(noExt)}`));
+	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${sha1(noExt)}`));
 });
 
 test("Unique hashes for URLs", async t => {
