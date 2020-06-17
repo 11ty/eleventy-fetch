@@ -39,6 +39,14 @@ test("Local hash without file extension in URL", async t => {
 	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(noExt)}`));
 });
 
+test("Unique hashes for URLs", async t => {
+  let apiURL1 = 'https://api.zooniverse.org/projects/illustratedlife/talk/subjects/ASC0000qu3';
+  let apiURL2 = 'https://api.zooniverse.org/projects/illustratedlife/talk/subjects/ASC0000q71';
+  let cachePath1 = new RemoteAssetCache(apiURL1).cachePath;
+  let cachePath2 = new RemoteAssetCache(apiURL2).cachePath;
+  t.not(cachePath1, cachePath2);
+});
+
 test("Fetching!", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac = new RemoteAssetCache(pngUrl);
