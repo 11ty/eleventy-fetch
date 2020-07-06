@@ -8,9 +8,20 @@ const AssetCache = require("./AssetCache");
 const debug = require("debug")("EleventyCacheAssets");
 
 class RemoteAssetCache extends AssetCache {
-	constructor(url, cacheDirectory) {
-		super(shorthash(url), cacheDirectory);
+	constructor(url, cacheDirectory, options = {}) {
+		let cleanUrl = url;
+		if(options.removeUrlQueryParams) {
+			cleanUrl = RemoteAssetCache.cleanUrl(url);
+		}
+		super(shorthash(cleanUrl), cacheDirectory);
 		this.url = url;
+		this.cleanUrl = cleanUrl;
+	}
+
+	static cleanUrl(url) {
+		let cleanUrl = new URL(url);
+		cleanUrl.search = new URLSearchParams([]);
+		return cleanUrl.toString();
 	}
 
 	get url() {
@@ -43,16 +54,16 @@ class RemoteAssetCache extends AssetCache {
 		try {
 			let response = await fetch(this.url, options.fetchOptions || {});
 			if(!response.ok) {
-				throw new Error(`Bad response for ${this.url} (${response.status}): ${response.statusText}`)
+				throw new Error(`Bad response for ${this.cleanUrl} (${response.status}): ${response.statusText}`)
 			}
 
 			let body = await this.getResponseValue(response, options.type);
-			console.log( `Caching: ${this.url}` ); // @11ty/eleventy-cache-assets
+			console.log( `Caching: ${this.cleanUrl}` ); // @11ty/eleventy-cache-assets
 			await super.save(body, options.type);
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
-				console.log( `Error fetching ${this.url}. Message: ${e.message}`);
+				console.log( `Error fetching ${this.cleanUrl}. Message: ${e.message}`);
 				console.log( `Failing gracefully with an expired cache entry.` );
 				return super.getCachedValue();
 			} else {

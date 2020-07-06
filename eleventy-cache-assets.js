@@ -8,6 +8,7 @@ const globalOptions = {
 	type: "buffer",
 	directory: ".cache",
 	concurrency: 10,
+	removeUrlQueryParams: false,
 	fetchOptions: {}
 };
 
@@ -26,7 +27,7 @@ async function save(source, options) {
 		return Promise.reject(new Error("Caching an already local asset is not yet supported."));
 	}
 
-	let asset = new RemoteAssetCache(source, options.directory);
+	let asset = new RemoteAssetCache(source, options.directory, options);
 	return asset.fetch(options);
 }
 

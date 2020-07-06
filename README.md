@@ -99,6 +99,18 @@ let imageBuffer = await CacheAsset(url, {
 // Use imageBuffer as an input to the `sharp` plugin, for example
 ```
 
+### Remove query params from cache identifier
+
+(Version 2.0.3 and newer) If your fetched URL contains some query parameters that aren’t relevant to the identifier used in the cache, remove them using the `removeUrlQueryParams` option.
+
+```js
+const CacheAsset = require("@11ty/eleventy-cache-assets");
+let url = "https://www.zachleat.com/img/avatar-2017-big.png?Get=rid&of=these";
+let imageBuffer = await CacheAsset(url, {
+	removeUrlQueryParams: true
+});
+```
+
 ### Fetch Google Fonts CSS
 
 Also a good example of using `fetchOptions` to pass in a custom user agent. Full option list is available on the [`node-fetch` documentation](https://www.npmjs.com/package/node-fetch#options).

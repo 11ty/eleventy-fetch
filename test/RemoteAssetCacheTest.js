@@ -34,6 +34,14 @@ test("Local hash file names", async t => {
 	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(fontUrl2)}`));
 });
 
+test("Clean url", async t => {
+	let shortUrl = "https://example.com/207115/photos/243-0-1.jpg";
+	let longUrl = "https://example.com/207115/photos/243-0-1.jpg?Policy=FAKE_THING~2123ksjhd&Signature=FAKE_THING~2123ksjhd&Key-Pair-Id=FAKE_THING~2123ksjhd";
+	t.is((new RemoteAssetCache(longUrl, ".cache", {
+		removeUrlQueryParams: true
+	})).cleanUrl, shortUrl);
+});
+
 test("Local hash without file extension in URL", async t => {
 	let noExt = "https://twitter.com/zachleat/profile_image?size=bigger";
 	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-cache-assets-${shorthash(noExt)}`));
