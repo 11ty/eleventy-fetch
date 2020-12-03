@@ -1,9 +1,7 @@
 const fs = require("fs");
 const fsp = fs.promises; // Node 10+
-const path = require("path");
 const fetch = require("node-fetch");
 const shorthash = require("short-hash");
-const flatCache = require("flat-cache");
 const AssetCache = require("./AssetCache");
 const debug = require("debug")("EleventyCacheAssets");
 
