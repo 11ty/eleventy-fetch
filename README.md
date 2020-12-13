@@ -2,17 +2,16 @@
 
 # eleventy-cache-assets
 
-## [The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/).
-
-_This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
-
 Fetch network resources and cache them so you don’t bombard your API (or other resources). Do this at configurable intervals—not with every build! Once per minute, or once per hour, once per day, or however often you like!
 
 With the added benefit that if one successful request completes, you can now work offline!
 
 This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 
-* Please go to the [full `eleventy-cache-assets` documentation on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)
+## [The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/).
+
+* _This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
+* [The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)
 * Find more [Eleventy plugins](https://www.11ty.dev/docs/plugins/).
 * [Eleventy Documentation](https://www.11ty.dev/docs/)
 * Please star [this repo](https://github.com/11ty/eleventy-cache-assets/) and [Eleventy on GitHub](https://github.com/11ty/eleventy/)!
@@ -29,7 +28,7 @@ This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 npm install @11ty/eleventy-cache-assets
 ```
 
-_Please go to the [full `eleventy-cache-assets` documentation on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)._
+_[The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)._
 
 ## Tests
 
