@@ -171,7 +171,7 @@ class AssetCache {
 
 		await this.save(this.source, options.type);
 
-		return asset;
+		return this.source;
 
 	}
 }
