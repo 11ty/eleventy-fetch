@@ -2,7 +2,9 @@
 
 # eleventy-cache-assets
 
-_This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/). ℹ️ Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/)._
+## Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/).
+
+_This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
 
 Fetch network resources and cache them so you don’t bombard your API (or other resources). Do this at configurable intervals—not with every build! Once per minute, or once per hour, once per day, or however often you like!
 
@@ -10,16 +12,14 @@ With the added benefit that if one successful request completes, you can now wor
 
 This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 
-* ℹ️ Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/)
+* Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/)
 * Find more [Eleventy plugins](https://www.11ty.dev/docs/plugins/).
-
-## ➡ [Eleventy Documentation](https://www.11ty.dev/docs/)
-
-- Please star [this repo](https://github.com/11ty/eleventy-cache-assets/) and [Eleventy on GitHub](https://github.com/11ty/eleventy/)!
-- Follow us on Twitter [@eleven_ty](https://twitter.com/eleven_ty)
-- Support [11ty on Open Collective](https://opencollective.com/11ty)
-- [11ty on npm](https://www.npmjs.com/org/11ty)
-- [11ty on GitHub](https://github.com/11ty)
+* [Eleventy Documentation](https://www.11ty.dev/docs/)
+* Please star [this repo](https://github.com/11ty/eleventy-cache-assets/) and [Eleventy on GitHub](https://github.com/11ty/eleventy/)!
+* Follow us on Twitter [@eleven_ty](https://twitter.com/eleven_ty)
+* Support [11ty on Open Collective](https://opencollective.com/11ty)
+* [11ty on npm](https://www.npmjs.com/org/11ty)
+* [11ty on GitHub](https://github.com/11ty)
 
 [![npm Version](https://img.shields.io/npm/v/@11ty/eleventy-cache-assets.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy-cache-assets) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy-cache-assets.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues)
 
@@ -29,7 +29,7 @@ This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 npm install @11ty/eleventy-cache-assets
 ```
 
-_ℹ️ Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/)._
+_Please go to the [full eleventy-cache-assets documentation on 11ty.dev](/docs/plugins/cache/)._
 
 ## Tests
 
