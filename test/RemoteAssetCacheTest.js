@@ -53,11 +53,5 @@ test("Fetching!", async t => {
 	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
 
-	// file is now accessible
-	await t.notThrowsAsync(fsp.access(ac.cachePath, fs.constants.R_OK));
-
-	try {
-		await fsp.unlink(ac.cachePath);
-		await fsp.unlink(ac.getCachedContentsPath());
-	} catch(e) {}
+	await t.notThrowsAsync(ac.destroy());
 });

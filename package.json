@@ -7,7 +7,8 @@
   },
   "main": "eleventy-cache-assets.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "sample": "node sample"
   },
   "engines": {
     "node": ">=10"

@@ -40,9 +40,18 @@ queue.on("active", () => {
 	debug( `Concurrency: ${queue.concurrency}, Size: ${queue.size}, Pending: ${queue.pending}` );
 });
 
+let inProgress = {};
+
 function queueSave(source, opts) {
 	let options = Object.assign({}, globalOptions, opts);
-	return queue.add(() => save(source, options));
+
+	if(!inProgress[source]) {
+		inProgress[source] = queue.add(() => save(source, options)).finally(() => {
+			delete inProgress[source];
+		});
+	}
+	
+	return inProgress[source];
 }
 
 module.exports = queueSave;

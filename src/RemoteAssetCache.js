@@ -69,5 +69,14 @@ class RemoteAssetCache extends AssetCache {
 			}
 		}
 	}
+	
+	async destroy() {
+		if(fs.existsSync(this.cachePath)) {
+			await fsp.unlink(this.cachePath);
+		}
+		if(fs.existsSync(this.getCachedContentsPath())) {
+			await fsp.unlink(this.getCachedContentsPath());
+		}
+	}
 }
 module.exports = RemoteAssetCache;
