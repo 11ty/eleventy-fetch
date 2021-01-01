@@ -1,3 +1,5 @@
+const startCpu = process.cpuUsage();
+const os = require("os");
 const saveLocal = require(".");
 const AssetCache = saveLocal.AssetCache;
 
@@ -10,13 +12,11 @@ const AssetCache = saveLocal.AssetCache;
 	let promises = [];
 
 	// don’t await here to test concurrency
-	promises.push(saveLocal("https://www.zachleat.com/img/avatar-2017-big.png", options));
-
-	promises.push(saveLocal("https://twitter.com/eleven_ty/profile_image?size=bigger", options));
-	promises.push(saveLocal("https://twitter.com/nejsconf/profile_image?size=bigger", options));
-	promises.push(saveLocal("https://twitter.com/nebraskajs/profile_image?size=bigger", options));
-	promises.push(saveLocal("https://twitter.com/netlify/profile_image?size=bigger", options));
-	promises.push(saveLocal("https://twitter.com/zachleat/profile_image?size=bigger", options));
+	let first = saveLocal("https://www.zachleat.com/img/avatar-2017-big.png", options);
+	promises.push(first);
+	
+	let second = saveLocal("https://www.zachleat.com/img/avatar-2017-big.png", options);
+	promises.push(second);
 
 	promises.push(saveLocal("https://www.zachleat.com/web/css/fonts/lato/2.0/LatoLatin-Regular.ttf", options));
 
@@ -29,14 +29,19 @@ const AssetCache = saveLocal.AssetCache;
 	let asset = new AssetCache("twitter-followers-eleven_ty");
 	if(asset.isCacheValid("4d")) {
 		console.log( "Found cached value" );
-		console.log( asset.getCachedValue() );
+		console.log( await asset.getCachedValue() );
 	} else {
 		console.log( "Saving value" );
 		asset.save({ followers: 42 }, "json");
 	}
-
-
+	
 	await Promise.all(promises);
-
+	
 	console.log( JSON.stringify(await json).substr(0, 100), "… (truncated)" );
+	
+	console.log( process.cpuUsage(startCpu) );
+	console.log( os.freemem() / (1024 * 1024), os.totalmem() / (1024 * 1024) );
+	// console.log( process.memoryUsage() );
+	// console.log( process.resourceUsage() );
+	
 })();
