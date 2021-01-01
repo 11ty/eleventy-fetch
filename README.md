@@ -2,6 +2,8 @@
 
 # eleventy-cache-assets
 
+_Requires Node 10+_
+
 Fetch network resources and cache them so you don’t bombard your API (or other resources). Do this at configurable intervals—not with every build! Once per minute, or once per hour, once per day, or however often you like!
 
 With the added benefit that if one successful request completes, you can now work offline!

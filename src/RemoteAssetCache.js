@@ -14,6 +14,7 @@ class RemoteAssetCache extends AssetCache {
 		super(shorthash(cleanUrl), cacheDirectory);
 		this.url = url;
 		this.cleanUrl = cleanUrl;
+		this.options = options;
 	}
 
 	static cleanUrl(url) {
@@ -39,8 +40,9 @@ class RemoteAssetCache extends AssetCache {
 		return response.buffer();
 	}
 
-	async fetch(options = {}) {
-		if( super.isCacheValid(options.duration) ) {
+	async fetch(optionsOverride = {}) {
+		let duration = optionsOverride.duration || this.options.duration;
+		if( super.isCacheValid(duration) ) {
 			return super.getCachedValue();
 		}
 
@@ -50,14 +52,16 @@ class RemoteAssetCache extends AssetCache {
 		});
 
 		try {
-			let response = await fetch(this.url, options.fetchOptions || {});
+			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
+			let response = await fetch(this.url, fetchOptions);
 			if(!response.ok) {
 				throw new Error(`Bad response for ${this.cleanUrl} (${response.status}): ${response.statusText}`)
 			}
 
-			let body = await this.getResponseValue(response, options.type);
+			let type = optionsOverride.type || this.options.type;
+			let body = await this.getResponseValue(response, type);
 			console.log( `Caching: ${this.cleanUrl}` ); // @11ty/eleventy-cache-assets
-			await super.save(body, options.type);
+			await super.save(body, type);
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {

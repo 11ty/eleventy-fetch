@@ -42,11 +42,9 @@ queue.on("active", () => {
 
 let inProgress = {};
 
-function queueSave(source, opts) {
-	let options = Object.assign({}, globalOptions, opts);
-
+function queueSave(source, queueCallback) {
 	if(!inProgress[source]) {
-		inProgress[source] = queue.add(() => save(source, options)).finally(() => {
+		inProgress[source] = queue.add(queueCallback).finally(() => {
 			delete inProgress[source];
 		});
 	}
@@ -54,7 +52,12 @@ function queueSave(source, opts) {
 	return inProgress[source];
 }
 
-module.exports = queueSave;
+module.exports = function(source, options) {
+	let mergedOptions = Object.assign({}, globalOptions, options);
+	return queueSave(source, () => {
+		return save(source, mergedOptions);
+	});
+};
 
 Object.defineProperty(module.exports, "concurrency", {
 	get: function() {
@@ -65,6 +68,6 @@ Object.defineProperty(module.exports, "concurrency", {
 	},
 });
 
-// TODO make advanced manual things work with the queue too
+module.exports.queue = queueSave;
 module.exports.RemoteAssetCache = RemoteAssetCache;
 module.exports.AssetCache = AssetCache;
