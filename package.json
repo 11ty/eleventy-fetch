@@ -31,9 +31,6 @@
     "url": "https://github.com/11ty/eleventy-cache-assets/issues"
   },
   "homepage": "https://github.com/11ty/eleventy-cache-assets#readme",
-  "peerDependencies": {
-    "@11ty/eleventy": ">=0.10.0"
-  },
   "devDependencies": {
     "ava": "^3.14.0"
   },
