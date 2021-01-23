@@ -41,15 +41,19 @@ class RemoteAssetCache extends AssetCache {
 	}
 
 	async fetch(optionsOverride = {}) {
+		let isDryRun = optionsOverride.dryRun || this.options.dryRun;
 		let duration = optionsOverride.duration || this.options.duration;
-		if( super.isCacheValid(duration) ) {
+		// Important: no disk writes/reads when dryRun
+		if( !isDryRun && super.isCacheValid(duration) ) {
 			return super.getCachedValue();
 		}
 
-		// make cacheDirectory if it does not exist.
-		await fsp.mkdir(this.cacheDirectory, {
-			recursive: true
-		});
+		if(!isDryRun) {
+			// make cacheDirectory if it does not exist.
+			await fsp.mkdir(this.cacheDirectory, {
+				recursive: true
+			});
+		}
 
 		try {
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
@@ -60,8 +64,10 @@ class RemoteAssetCache extends AssetCache {
 
 			let type = optionsOverride.type || this.options.type;
 			let body = await this.getResponseValue(response, type);
-			console.log( `Caching: ${this.cleanUrl}` ); // @11ty/eleventy-cache-assets
-			await super.save(body, type);
+			console.log( `${isDryRun? "Fetching" : "Caching"}: ${this.cleanUrl}` ); // @11ty/eleventy-cache-assets
+			if(!isDryRun) {
+				await super.save(body, type);
+			}
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
@@ -73,7 +79,14 @@ class RemoteAssetCache extends AssetCache {
 			}
 		}
 	}
-	
+
+	// for testing
+	hasCacheFiles() {
+		return fs.existsSync(this.cachePath) ||
+			fs.existsSync(this.getCachedContentsPath());
+	}
+
+	// for testing
 	async destroy() {
 		if(fs.existsSync(this.cachePath)) {
 			await fsp.unlink(this.cachePath);

@@ -55,3 +55,13 @@ test("Fetching!", async t => {
 
 	await t.notThrowsAsync(ac.destroy());
 });
+
+test("Fetching (dry run)!", async t => {
+	let svgUrl = "https://www.zachleat.com/img/avatar-2017-88.png";
+	let ac = new RemoteAssetCache(svgUrl);
+	let buffer = await ac.fetch({
+		dryRun: true,
+	});
+	t.is(Buffer.isBuffer(buffer), true);
+	t.false(ac.hasCacheFiles());
+});

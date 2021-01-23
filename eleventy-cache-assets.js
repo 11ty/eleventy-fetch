@@ -9,7 +9,8 @@ const globalOptions = {
 	directory: ".cache",
 	concurrency: 10,
 	removeUrlQueryParams: false,
-	fetchOptions: {}
+	fetchOptions: {},
+	dryRun: false, // don’t write anything to the file system
 };
 
 function isFullUrl(url) {
