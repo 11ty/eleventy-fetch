@@ -47,13 +47,27 @@ class AssetCache {
 		return `eleventy-cache-assets-${this.hash}`;
 	}
 
+	get rootDir() {
+		// Work in an AWS Lambda (serverless)
+		// https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
+	
+		// if we use task root, cacheDirectory must be relative
+		// (we are bundling the cache files into the serverless function)
+		if(process.env.LAMBDA_TASK_ROOT && !this.cacheDirectory.startsWith("/")) {
+			return path.resolve(process.env.LAMBDA_TASK_ROOT, this.cacheDirectory);
+		}
+
+		// recommended to use /tmp/.cache in serverless
+		return path.resolve(this.cacheDirectory);
+	}
+
 	get cachePath() {
-		return path.join(path.resolve(this.cacheDirectory), this.cacheFilename);
+		return path.join(this.rootDir, this.cacheFilename);
 	}
 
 	get cache() {
 		if(!this._cache || this._cacheLocationDirty) {
-			this._cache = flatCache.load(this.cacheFilename, path.resolve(this.cacheDirectory));
+			this._cache = flatCache.load(this.cacheFilename, this.rootDir);
 		}
 		return this._cache;
 	}
