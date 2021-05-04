@@ -51,13 +51,14 @@ class AssetCache {
 		// Work in an AWS Lambda (serverless)
 		// https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
 	
-		// if we use task root, cacheDirectory must be relative
+		// Bad: LAMBDA_TASK_ROOT is /var/task/ on AWS so we must use ELEVENTY_ROOT
+		// When using ELEVENTY_ROOT, cacheDirectory must be relative
 		// (we are bundling the cache files into the serverless function)
-		if(process.env.LAMBDA_TASK_ROOT && !this.cacheDirectory.startsWith("/")) {
-			return path.resolve(process.env.LAMBDA_TASK_ROOT, this.cacheDirectory);
+		if(process.env.LAMBDA_TASK_ROOT && process.env.ELEVENTY_ROOT && !this.cacheDirectory.startsWith("/")) {
+			return path.resolve(process.env.ELEVENTY_ROOT, this.cacheDirectory);
 		}
 
-		// recommended to use /tmp/.cache in serverless
+		// otherwise, it is recommended to use somewhere in /tmp/ for serverless (otherwise it won’t write)
 		return path.resolve(this.cacheDirectory);
 	}
 
