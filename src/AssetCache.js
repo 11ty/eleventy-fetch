@@ -5,10 +5,11 @@ const flatCache = require("flat-cache");
 const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
-	constructor(uniqueKey, cacheDirectory) {
+	constructor(uniqueKey, cacheDirectory, options = {}) {
 		this.hash = uniqueKey;
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
+		this.options = options;
 	}
 
 	get source() {
@@ -98,7 +99,22 @@ class AssetCache {
 		return `${this.cachePath}.${type}`;
 	}
 
+	async ensureDir() {
+		if(this._dirEnsured) {
+			return;
+		}
+
+		// make cacheDirectory if it does not exist.
+		return fsp.mkdir(this.cacheDirectory, {
+			recursive: true
+		}).then(() => {
+			this._dirEnsured = true;
+		});
+	}
+
 	async save(contents, type = "buffer") {
+		await this.ensureDir();
+
 		if(type === "json") {
 			contents = JSON.stringify(contents);
 		}

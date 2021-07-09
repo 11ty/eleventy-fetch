@@ -11,7 +11,7 @@ class RemoteAssetCache extends AssetCache {
 		if(options.removeUrlQueryParams) {
 			cleanUrl = RemoteAssetCache.cleanUrl(url);
 		}
-		super(shorthash(cleanUrl), cacheDirectory);
+		super(shorthash(cleanUrl), cacheDirectory, options);
 		this.url = url;
 		this.cleanUrl = cleanUrl;
 		this.options = options;
@@ -46,13 +46,6 @@ class RemoteAssetCache extends AssetCache {
 		// Important: no disk writes/reads when dryRun
 		if( !isDryRun && super.isCacheValid(duration) ) {
 			return super.getCachedValue();
-		}
-
-		if(!isDryRun) {
-			// make cacheDirectory if it does not exist.
-			await fsp.mkdir(this.cacheDirectory, {
-				recursive: true
-			});
 		}
 
 		try {

@@ -1,5 +1,6 @@
 const test = require("ava");
 const path = require("path");
+const fs = require("fs");
 const AssetCache = require("../src/AssetCache");
 
 function normalizePath(pathStr) {
@@ -38,4 +39,17 @@ test("AWS Lambda root directory resolves correctly", t => {
   t.is(cachePath, `${cwd}/.cache/eleventy-cache-assets-lksdjflkjsdf`);
   delete "ELEVENTY_ROOT" in process.env;
   delete "LAMBDA_TASK_ROOT" in process.env;
+});
+
+test("Test a save", async t => {
+  let asset = new AssetCache("zachleat_twitter_followers", ".customcache");
+  let cachePath = normalizePath(asset.cachePath);
+  let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
+
+  await asset.save({followers: 10}, "json");
+
+  t.truthy(fs.existsSync(jsonCachePath));
+
+  fs.unlinkSync(cachePath);
+  fs.unlinkSync(jsonCachePath);
 });
