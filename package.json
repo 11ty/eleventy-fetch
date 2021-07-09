@@ -1,6 +1,6 @@
 {
   "name": "@11ty/eleventy-cache-assets",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Cache remote assets, locally (automatically).",
   "publishConfig": {
     "access": "public"
