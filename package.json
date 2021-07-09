@@ -10,6 +10,10 @@
     "test": "ava",
     "sample": "node sample"
   },
+  "files": [
+    "src/",
+    "eleventy-cache-assets.js"
+  ],
   "engines": {
     "node": ">=10"
   },
