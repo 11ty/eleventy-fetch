@@ -42,7 +42,7 @@
     "short-hash": "^1.0.0"
   },
   "ava": {
-    "failFast": true,
+    "failFast": false,
     "files": [
       "./test/*.js"
     ],

@@ -16,9 +16,12 @@ test("Relative path cache directory", t => {
 });
 
 test("AWS Lambda root directory resolves correctly", t => {
+  let cwd = process.cwd();
+  process.env.ELEVENTY_ROOT = cwd;
   process.env.LAMBDA_TASK_ROOT = "/var/task/z/";
 	let cache = new AssetCache("lksdjflkjsdf", ".cache");
   
-  t.is(cache.cachePath, "/var/task/z/.cache/eleventy-cache-assets-lksdjflkjsdf");
+  t.is(cache.cachePath, `${cwd}/.cache/eleventy-cache-assets-lksdjflkjsdf`);
+  delete "ELEVENTY_ROOT" in process.env;
   delete "LAMBDA_TASK_ROOT" in process.env;
 });
