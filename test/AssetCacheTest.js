@@ -3,6 +3,10 @@ const path = require("path");
 const AssetCache = require("../src/AssetCache");
 
 function normalizePath(pathStr) {
+  if(typeof pathStr !== "string") {
+    return pathStr;
+  }
+
   if(pathStr.match(/^[A-Z]\:/)) {
     pathStr = pathStr.substr(2);
   }
