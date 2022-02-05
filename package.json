@@ -5,6 +5,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/11ty/eleventy-cache-assets.git"
+  },
   "main": "eleventy-cache-assets.js",
   "scripts": {
     "test": "ava",
