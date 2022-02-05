@@ -40,12 +40,12 @@
   },
   "homepage": "https://github.com/11ty/eleventy-cache-assets#readme",
   "devDependencies": {
-    "ava": "^3.14.0"
+    "ava": "^4.0.1"
   },
   "dependencies": {
-    "debug": "^4.3.1",
+    "debug": "^4.3.3",
     "flat-cache": "^3.0.4",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.7",
     "p-queue": "^6.6.2",
     "short-hash": "^1.0.0"
   },
