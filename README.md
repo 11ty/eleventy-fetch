@@ -4,6 +4,8 @@
 
 _Requires Node 12+_
 
+Formerly known as [`@11ty/eleventy-cache-assets`](https://www.npmjs.com/package/@11ty/eleventy-cache-assets).
+
 Fetch network resources and cache them so you don’t bombard your API (or other resources). Do this at configurable intervals—not with every build! Once per minute, or once per hour, once per day, or however often you like!
 
 With the added benefit that if one successful request completes, you can now work offline!
