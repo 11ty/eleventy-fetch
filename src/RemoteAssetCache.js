@@ -57,15 +57,15 @@ class RemoteAssetCache extends AssetCache {
 
 			let type = optionsOverride.type || this.options.type;
 			let body = await this.getResponseValue(response, type);
-			console.log( `[11ty/eleventy-cache-assets] ${isDryRun? "Fetching" : "Caching"}: ${this.cleanUrl}` );
+			console.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
 			if(!isDryRun) {
 				await super.save(body, type);
 			}
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
-				console.log( `[11ty/eleventy-cache-assets] Error fetching ${this.cleanUrl}. Message: ${e.message}`);
-				console.log( `[11ty/eleventy-cache-assets] Failing gracefully with an expired cache entry.` );
+				console.log( `[11ty/eleventy-fetch] Error fetching ${this.displayUrl}. Message: ${e.message}`);
+				console.log( `[11ty/eleventy-fetch] Failing gracefully with an expired cache entry.` );
 				return super.getCachedValue();
 			} else {
 				return Promise.reject(e);

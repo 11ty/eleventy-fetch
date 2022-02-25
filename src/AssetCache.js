@@ -45,7 +45,7 @@ class AssetCache {
 	}
 
 	get cacheFilename() {
-		return `eleventy-cache-assets-${this.hash}`;
+		return `eleventy-fetch-${this.hash}`;
 	}
 
 	get rootDir() {

@@ -18,15 +18,15 @@ test("Absolute path cache directory", t => {
 	let cache = new AssetCache("lksdjflkjsdf", "/tmp/.cache");
   let cachePath = normalizePath(cache.cachePath);
 
-  t.is(cachePath, "/tmp/.cache/eleventy-cache-assets-lksdjflkjsdf");
+  t.is(cachePath, "/tmp/.cache/eleventy-fetch-lksdjflkjsdf");
 });
 
 test("Relative path cache directory", t => {
 	let cache = new AssetCache("lksdjflkjsdf", ".cache");
   let cachePath = normalizePath(cache.cachePath);
 
-  t.not(cachePath, ".cache/eleventy-cache-assets-lksdjflkjsdf");
-  t.true(cachePath.endsWith(".cache/eleventy-cache-assets-lksdjflkjsdf"));
+  t.not(cachePath, ".cache/eleventy-fetch-lksdjflkjsdf");
+  t.true(cachePath.endsWith(".cache/eleventy-fetch-lksdjflkjsdf"));
 });
 
 test("AWS Lambda root directory resolves correctly", t => {
@@ -36,7 +36,7 @@ test("AWS Lambda root directory resolves correctly", t => {
 	let cache = new AssetCache("lksdjflkjsdf", ".cache");
   let cachePath = normalizePath(cache.cachePath);
 
-  t.is(cachePath, `${cwd}/.cache/eleventy-cache-assets-lksdjflkjsdf`);
+  t.is(cachePath, `${cwd}/.cache/eleventy-fetch-lksdjflkjsdf`);
   delete "ELEVENTY_ROOT" in process.env;
   delete "LAMBDA_TASK_ROOT" in process.env;
 });

@@ -1,22 +1,22 @@
 {
-  "name": "@11ty/eleventy-cache-assets",
+  "name": "@11ty/eleventy-fetch",
   "version": "2.3.0",
-  "description": "Cache remote assets, locally (automatically).",
+  "description": "Fetch and locally cache remote API calls and assets.",
   "publishConfig": {
     "access": "public"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/11ty/eleventy-cache-assets.git"
+    "url": "git+https://github.com/11ty/eleventy-fetch.git"
   },
-  "main": "eleventy-cache-assets.js",
+  "main": "eleventy-fetch.js",
   "scripts": {
     "test": "ava",
     "sample": "node sample"
   },
   "files": [
     "src/",
-    "eleventy-cache-assets.js"
+    "eleventy-fetch.js"
   ],
   "engines": {
     "node": ">=12"
@@ -36,9 +36,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/11ty/eleventy-cache-assets/issues"
+    "url": "https://github.com/11ty/eleventy-fetch/issues"
   },
-  "homepage": "https://github.com/11ty/eleventy-cache-assets#readme",
+  "homepage": "https://github.com/11ty/eleventy-fetch#readme",
   "devDependencies": {
     "ava": "^4.0.1"
   },

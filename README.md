@@ -1,6 +1,6 @@
 <p align="center"><img src="https://www.11ty.dev/img/logo-github.png" alt="eleventy Logo"></p>
 
-# eleventy-cache-assets
+# eleventy-fetch
 
 _Requires Node 12+_
 
@@ -10,21 +10,21 @@ With the added benefit that if one successful request completes, you can now wor
 
 This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 
-## [The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/).
+## [The full `eleventy-fetch` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/).
 
 * _This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
 * Find more [Eleventy plugins](https://www.11ty.dev/docs/plugins/).
 * Please star [Eleventy on GitHub](https://github.com/11ty/eleventy/), follow [@eleven_ty](https://twitter.com/eleven_ty) on Twitter, and support [11ty on Open Collective](https://opencollective.com/11ty)
 
-[![npm Version](https://img.shields.io/npm/v/@11ty/eleventy-cache-assets.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy-cache-assets) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy-cache-assets.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues)
+[![npm Version](https://img.shields.io/npm/v/@11ty/eleventy-fetch.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy-fetch) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy-fetch.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues)
 
 ## Installation
 
 ```
-npm install @11ty/eleventy-cache-assets
+npm install @11ty/eleventy-fetch
 ```
 
-_[The full `eleventy-cache-assets` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)._
+_[The full `eleventy-fetch` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/)._
 
 ## Tests
 
@@ -46,3 +46,9 @@ npm run test
 * `flat-cache` save method seems to be synchronous, is there a better async one?
 * Our cache stores raw buffers internally, which are pretty bloated compared to the original. Surely there is a more efficient way to do this. Maybe store the files in their original format.
 -->
+
+## Community Roadmap
+
+- [Top Feature Requests](https://github.com/11ty/eleventy-fetch/issues?q=label%3Aneeds-votes+sort%3Areactions-%2B1-desc+label%3Aenhancement) (Add your own votes using the 👍 reaction)
+- [Top Bugs 😱](https://github.com/11ty/eleventy-fetch/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) (Add your own votes using the 👍 reaction)
+- [Newest Bugs 🙀](https://github.com/11ty/eleventy-fetch/issues?q=is%3Aopen+is%3Aissue+label%3Abug)

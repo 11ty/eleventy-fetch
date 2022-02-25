@@ -1,6 +1,5 @@
 const test = require("ava");
 const fs = require("fs");
-const shorthash = require("short-hash");
 const Cache = require("../");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
