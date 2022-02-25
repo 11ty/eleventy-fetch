@@ -2,15 +2,23 @@ const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 const path = require("path");
 const flatCache = require("flat-cache");
-const slugify = require("@sindresorhus/slugify");
+const { createHash } = require("crypto");
+
 const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
 	constructor(uniqueKey, cacheDirectory, options = {}) {
-		this.hash = uniqueKey;
+		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
 		this.options = options;
+	}
+
+	// Defult hashLength also set in global options, duplicated here for tests
+	static getHash(url, hashLength = 30) {
+		let hash = createHash("sha256");
+		hash.update(url);
+		return (""+hash.digest('hex')).substr(0, hashLength);
 	}
 
 	get source() {
@@ -26,11 +34,6 @@ class AssetCache {
 	}
 
 	set hash(value) {
-		value = slugify(value, {
-			preserveLeadingUnderscore: true,
-			preserveTrailingDash: true,
-		});
-
 		if(value !== this._hash) {
 			this._cacheLocationDirty = true;
 		}

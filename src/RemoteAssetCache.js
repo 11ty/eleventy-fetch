@@ -1,6 +1,5 @@
 const fs = require("fs");
 const fsp = fs.promises; // Node 10+
-const { createHash } = require("crypto");
 
 const fetch = require("node-fetch");
 const AssetCache = require("./AssetCache");
@@ -12,20 +11,13 @@ class RemoteAssetCache extends AssetCache {
 		if(options.removeUrlQueryParams) {
 			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
-		let hash = RemoteAssetCache.getHash(cleanUrl);
-		super(hash, cacheDirectory, options);
+		super(cleanUrl, cacheDirectory, options);
 
 		this.url = url;
 		this.options = options;
 
 		// Important: runs after removeUrlQueryParams
 		this.displayUrl = this.formatUrlForDisplay(cleanUrl);
-	}
-
-	static getHash(url) {
-		let hash = createHash("sha256");
-		hash.update(url);
-		return hash.digest('hex');
 	}
 
 	static cleanUrl(url) {

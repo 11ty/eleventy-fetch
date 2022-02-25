@@ -20,6 +20,8 @@ const globalOptions = {
 	// },
 
 	verbose: false, // Changed in 3.0+
+
+	hashLength: 30,
 };
 
 function isFullUrl(url) {

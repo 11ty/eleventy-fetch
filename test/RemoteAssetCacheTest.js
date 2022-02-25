@@ -1,6 +1,7 @@
 const test = require("ava");
 const path = require("path");
 const { Util } = require("../");
+const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
 test("getDurationMs", t => {
@@ -22,13 +23,13 @@ test("getDurationMs", t => {
 
 test("Local hash file names", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
-	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(pngUrl)}`));
+	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${AssetCache.getHash(pngUrl)}`));
 
 	let fontUrl = "https://www.zachleat.com/font.woff";
-	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(fontUrl)}`));
+	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${AssetCache.getHash(fontUrl)}`));
 
 	let fontUrl2 = "https://www.zachleat.com/font.woff2";
-	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(fontUrl2)}`));
+	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${AssetCache.getHash(fontUrl2)}`));
 });
 
 test("Clean url", async t => {
@@ -41,7 +42,7 @@ test("Clean url", async t => {
 
 test("Local hash without file extension in URL", async t => {
 	let noExt = "https://twitter.com/zachleat/profile_image?size=bigger";
-	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(noExt)}`));
+	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${AssetCache.getHash(noExt)}`));
 });
 
 test("Unique hashes for URLs", async t => {
