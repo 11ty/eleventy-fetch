@@ -2,6 +2,7 @@ const test = require("ava");
 const path = require("path");
 const fs = require("fs");
 const shorthash = require("short-hash");
+const { Util } = require("../");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
 let fsp = fs.promises;
@@ -89,4 +90,10 @@ test("formatUrlForDisplay (using removeUrlQueryParams)", async t => {
 			return url;
 		}
 	})).displayUrl, finalUrl);
+});
+
+
+test("Issue #6, URLs with HTTP Auth", async t => {
+	let url = "https://${USERNAME}:${PASSWORD}@api.pinboard.in/v1/posts/all?format=json&tag=read";
+	t.true(Util.isFullUrl(url));
 });

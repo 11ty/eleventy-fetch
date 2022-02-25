@@ -79,5 +79,8 @@ Object.defineProperty(module.exports, "concurrency", {
 });
 
 module.exports.queue = queueSave;
+module.exports.Util = {
+	isFullUrl
+};
 module.exports.RemoteAssetCache = RemoteAssetCache;
 module.exports.AssetCache = AssetCache;
