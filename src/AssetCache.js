@@ -2,6 +2,7 @@ const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 const path = require("path");
 const flatCache = require("flat-cache");
+const slugify = require("@sindresorhus/slugify");
 const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
@@ -25,6 +26,11 @@ class AssetCache {
 	}
 
 	set hash(value) {
+		value = slugify(value, {
+			preserveLeadingUnderscore: true,
+			preserveTrailingDash: true,
+		});
+
 		if(value !== this._hash) {
 			this._cacheLocationDirty = true;
 		}

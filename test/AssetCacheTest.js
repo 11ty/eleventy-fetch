@@ -53,3 +53,10 @@ test("Test a save", async t => {
   fs.unlinkSync(cachePath);
   fs.unlinkSync(jsonCachePath);
 });
+
+test("Cache path should be slugified, issue #14", t => {
+	let cache = new AssetCache("lksdjflk/jsdf", "/tmp/.cache");
+  let cachePath = normalizePath(cache.cachePath);
+
+  t.is(cachePath, "/tmp/.cache/eleventy-fetch-lksdjflk-jsdf");
+});

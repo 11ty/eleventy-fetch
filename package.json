@@ -43,6 +43,7 @@
     "ava": "^4.0.1"
   },
   "dependencies": {
+    "@sindresorhus/slugify": "^1.1.2",
     "debug": "^4.3.3",
     "flat-cache": "^3.0.4",
     "node-fetch": "^2.6.7",
