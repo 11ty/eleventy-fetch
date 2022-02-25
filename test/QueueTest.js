@@ -18,7 +18,9 @@ test("Double Fetch", async t => {
 
 	let forDestroyOnly = new RemoteAssetCache(pngUrl);
 	// file is now accessible
-	await t.notThrowsAsync(forDestroyOnly.destroy());
+	try {
+		await forDestroyOnly.destroy()
+	} catch(e) {}
 });
 
 test("Double Fetch (dry run)", async t => {
@@ -33,7 +35,7 @@ test("Double Fetch (dry run)", async t => {
 	await ac2;
 
 	let forTestOnly = new RemoteAssetCache(pngUrl, ".cache", {
-		dryRun: true
+		dryRun: true,
 	});
 	// file is now accessible
 	t.false(forTestOnly.hasCacheFiles());

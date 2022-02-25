@@ -8,9 +8,18 @@ const globalOptions = {
 	type: "buffer",
 	directory: ".cache",
 	concurrency: 10,
-	removeUrlQueryParams: false,
 	fetchOptions: {},
 	dryRun: false, // don’t write anything to the file system
+
+	// *does* affect cache key hash
+	removeUrlQueryParams: false,
+
+	// runs after removeUrlQueryParams, does not affect cache key hash
+	// formatUrlForDisplay: function(url) {
+	// 	return url;
+	// },
+
+	verbose: false, // Changed in 3.0+
 };
 
 function isFullUrl(url) {

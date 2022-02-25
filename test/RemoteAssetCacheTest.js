@@ -38,8 +38,8 @@ test("Clean url", async t => {
 	let shortUrl = "https://example.com/207115/photos/243-0-1.jpg";
 	let longUrl = "https://example.com/207115/photos/243-0-1.jpg?Policy=FAKE_THING~2123ksjhd&Signature=FAKE_THING~2123ksjhd&Key-Pair-Id=FAKE_THING~2123ksjhd";
 	t.is((new RemoteAssetCache(longUrl, ".cache", {
-		removeUrlQueryParams: true
-	})).cleanUrl, shortUrl);
+		removeUrlQueryParams: true,
+	})).displayUrl, shortUrl);
 });
 
 test("Local hash without file extension in URL", async t => {
@@ -53,15 +53,40 @@ test("Fetching!", async t => {
 	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
 
-	await t.notThrowsAsync(ac.destroy());
+	try {
+		await ac.destroy()
+	} catch(e) {}
 });
 
 test("Fetching (dry run)!", async t => {
 	let svgUrl = "https://www.zachleat.com/img/avatar-2017-88.png";
-	let ac = new RemoteAssetCache(svgUrl);
-	let buffer = await ac.fetch({
-		dryRun: true,
+	let ac = new RemoteAssetCache(svgUrl, ".cache", {
+		dryRun: true
 	});
+	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
 	t.false(ac.hasCacheFiles());
+});
+
+test("formatUrlForDisplay (manual query param removal)", async t => {
+	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
+	let longUrl = "https://example.com/207115/photos/243-0-1.jpg?Policy=FAKE_THING~2123ksjhd&Signature=FAKE_THING~2123ksjhd&Key-Pair-Id=FAKE_THING~2123ksjhd";
+	t.is((new RemoteAssetCache(longUrl, ".cache", {
+		removeUrlQueryParams: false,
+		formatUrlForDisplay(url) {
+			let [rest, queryParams] = url.split("?");
+			return rest;
+		}
+	})).displayUrl, finalUrl);
+});
+
+test("formatUrlForDisplay (using removeUrlQueryParams)", async t => {
+	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
+	let longUrl = "https://example.com/207115/photos/243-0-1.jpg?Policy=FAKE_THING~2123ksjhd&Signature=FAKE_THING~2123ksjhd&Key-Pair-Id=FAKE_THING~2123ksjhd";
+	t.is((new RemoteAssetCache(longUrl, ".cache", {
+		removeUrlQueryParams: true,
+		formatUrlForDisplay(url) {
+			return url;
+		}
+	})).displayUrl, finalUrl);
 });

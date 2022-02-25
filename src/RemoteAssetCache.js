@@ -9,18 +9,35 @@ class RemoteAssetCache extends AssetCache {
 	constructor(url, cacheDirectory, options = {}) {
 		let cleanUrl = url;
 		if(options.removeUrlQueryParams) {
-			cleanUrl = RemoteAssetCache.cleanUrl(url);
+			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
 		super(shorthash(cleanUrl), cacheDirectory, options);
 		this.url = url;
-		this.cleanUrl = cleanUrl;
 		this.options = options;
+
+		// Important: runs after removeUrlQueryParams
+		this.displayUrl = this.formatUrlForDisplay(cleanUrl);
 	}
 
 	static cleanUrl(url) {
 		let cleanUrl = new URL(url);
 		cleanUrl.search = new URLSearchParams([]);
 		return cleanUrl.toString();
+	}
+
+	formatUrlForDisplay(url) {
+		if(this.options.formatUrlForDisplay && typeof this.options.formatUrlForDisplay === "function") {
+			return this.options.formatUrlForDisplay(url);
+		}
+		return url;
+	}
+
+	log(message) {
+		if(this.options.verbose) {
+			console.log(message);
+		} else {
+			debug(message);
+		}
 	}
 
 	get url() {
@@ -52,20 +69,20 @@ class RemoteAssetCache extends AssetCache {
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 			let response = await fetch(this.url, fetchOptions);
 			if(!response.ok) {
-				throw new Error(`Bad response for ${this.cleanUrl} (${response.status}): ${response.statusText}`)
+				throw new Error(`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`)
 			}
 
 			let type = optionsOverride.type || this.options.type;
 			let body = await this.getResponseValue(response, type);
-			console.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
+			this.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
 			if(!isDryRun) {
 				await super.save(body, type);
 			}
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
-				console.log( `[11ty/eleventy-fetch] Error fetching ${this.displayUrl}. Message: ${e.message}`);
-				console.log( `[11ty/eleventy-fetch] Failing gracefully with an expired cache entry.` );
+				this.log( `[11ty/eleventy-fetch] Error fetching ${this.displayUrl}. Message: ${e.message}`);
+				this.log( `[11ty/eleventy-fetch] Failing gracefully with an expired cache entry.` );
 				return super.getCachedValue();
 			} else {
 				return Promise.reject(e);
