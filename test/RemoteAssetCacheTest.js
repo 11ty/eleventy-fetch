@@ -1,11 +1,7 @@
 const test = require("ava");
 const path = require("path");
-const fs = require("fs");
-const shorthash = require("short-hash");
 const { Util } = require("../");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
-
-let fsp = fs.promises;
 
 test("getDurationMs", t => {
 	let cache = new RemoteAssetCache("lksdjflkjsdf");
@@ -26,13 +22,13 @@ test("getDurationMs", t => {
 
 test("Local hash file names", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
-	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${shorthash(pngUrl)}`));
+	t.is((new RemoteAssetCache(pngUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(pngUrl)}`));
 
 	let fontUrl = "https://www.zachleat.com/font.woff";
-	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${shorthash(fontUrl)}`));
+	t.is((new RemoteAssetCache(fontUrl)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(fontUrl)}`));
 
 	let fontUrl2 = "https://www.zachleat.com/font.woff2";
-	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${shorthash(fontUrl2)}`));
+	t.is((new RemoteAssetCache(fontUrl2)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(fontUrl2)}`));
 });
 
 test("Clean url", async t => {
@@ -45,7 +41,15 @@ test("Clean url", async t => {
 
 test("Local hash without file extension in URL", async t => {
 	let noExt = "https://twitter.com/zachleat/profile_image?size=bigger";
-	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${shorthash(noExt)}`));
+	t.is((new RemoteAssetCache(noExt)).cachePath, path.resolve(".", `.cache/eleventy-fetch-${RemoteAssetCache.getHash(noExt)}`));
+});
+
+test("Unique hashes for URLs", async t => {
+  let apiURL1 = 'https://api.zooniverse.org/projects/illustratedlife/talk/subjects/ASC0000qu3';
+  let apiURL2 = 'https://api.zooniverse.org/projects/illustratedlife/talk/subjects/ASC0000q71';
+  let cachePath1 = new RemoteAssetCache(apiURL1).cachePath;
+  let cachePath2 = new RemoteAssetCache(apiURL2).cachePath;
+  t.not(cachePath1, cachePath2);
 });
 
 test("Fetching!", async t => {

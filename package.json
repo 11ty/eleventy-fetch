@@ -46,8 +46,7 @@
     "debug": "^4.3.3",
     "flat-cache": "^3.0.4",
     "node-fetch": "^2.6.7",
-    "p-queue": "^6.6.2",
-    "short-hash": "^1.0.0"
+    "p-queue": "^6.6.2"
   },
   "ava": {
     "failFast": false,
