@@ -59,14 +59,17 @@ class RemoteAssetCache extends AssetCache {
 	}
 
 	async fetch(optionsOverride = {}) {
-		let isDryRun = optionsOverride.dryRun || this.options.dryRun;
 		let duration = optionsOverride.duration || this.options.duration;
-		// Important: no disk writes/reads when dryRun
-		if( !isDryRun && super.isCacheValid(duration) ) {
+		// Important: no disk writes when dryRun
+		// As of Fetch v4, reads are now allowed!
+		if(super.isCacheValid(duration) ) {
 			return super.getCachedValue();
 		}
 
 		try {
+			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
+			this.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
+
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 			let response = await fetch(this.url, fetchOptions);
 			if(!response.ok) {
@@ -75,7 +78,6 @@ class RemoteAssetCache extends AssetCache {
 
 			let type = optionsOverride.type || this.options.type;
 			let body = await this.getResponseValue(response, type);
-			this.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
 			if(!isDryRun) {
 				await super.save(body, type);
 			}

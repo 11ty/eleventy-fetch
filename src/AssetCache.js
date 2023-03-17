@@ -122,6 +122,11 @@ class AssetCache {
 	}
 
 	async save(contents, type = "buffer") {
+		if(this.options.dryRun) {
+			debug("An attempt was made to save to the file system with `dryRun: true`. Skipping.");
+			return;
+		}
+
 		await this.ensureDir();
 
 		if(type === "json") {
