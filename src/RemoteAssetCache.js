@@ -73,7 +73,9 @@ class RemoteAssetCache extends AssetCache {
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 			let response = await fetch(this.url, fetchOptions);
 			if(!response.ok) {
-				throw new Error(`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`)
+				let error = new Error(`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`);
+				error.response = response;
+				throw error
 			}
 
 			let type = optionsOverride.type || this.options.type;
