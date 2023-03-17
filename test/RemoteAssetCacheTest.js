@@ -102,3 +102,17 @@ test("Issue #6, URLs with HTTP Auth", async t => {
 	let url = "https://${USERNAME}:${PASSWORD}@api.pinboard.in/v1/posts/all?format=json&tag=read";
 	t.true(Util.isFullUrl(url));
 });
+
+test("Error with `cause`", async t => {
+	t.plan(2);
+
+	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
+	let asset = new RemoteAssetCache(finalUrl);
+
+	try {
+		await asset.fetch();
+	} catch(e) {
+		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
+		t.truthy(e.cause);
+	}
+});
