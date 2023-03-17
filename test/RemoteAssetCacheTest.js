@@ -104,8 +104,6 @@ test("Issue #6, URLs with HTTP Auth", async t => {
 });
 
 test("Error with `cause`", async t => {
-	t.plan(2);
-
 	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
 	let asset = new RemoteAssetCache(finalUrl);
 
@@ -113,6 +111,14 @@ test("Error with `cause`", async t => {
 		await asset.fetch();
 	} catch(e) {
 		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
-		t.truthy(e.cause);
+
+		// Cause is an optional enhancement for Node 16.19+
+		let [major, minor] = process.version.split(".");
+		major = parseInt(major.startsWith("v") ? major.slice(1) : major, 10);
+		minor = parseInt(minor, 10);
+
+		if(major > 16 || major === 16 && minor > 19) {
+			t.truthy(e.cause);
+		}
 	}
 });
