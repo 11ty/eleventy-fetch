@@ -1,6 +1,6 @@
 {
   "name": "@11ty/eleventy-fetch",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Fetch and locally cache remote API calls and assets.",
   "publishConfig": {
     "access": "public"
@@ -19,7 +19,7 @@
     "eleventy-fetch.js"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "funding": {
     "type": "opencollective",
@@ -40,10 +40,10 @@
   },
   "homepage": "https://github.com/11ty/eleventy-fetch#readme",
   "devDependencies": {
-    "ava": "^4.0.1"
+    "ava": "^5.2.0"
   },
   "dependencies": {
-    "debug": "^4.3.3",
+    "debug": "^4.3.4",
     "flat-cache": "^3.0.4",
     "node-fetch": "^2.6.7",
     "p-queue": "^6.6.2"

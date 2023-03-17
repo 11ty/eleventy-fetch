@@ -2,7 +2,7 @@
 
 # eleventy-fetch
 
-_Requires Node 12+_
+_Requires Node 14+_
 
 Formerly known as [`@11ty/eleventy-cache-assets`](https://www.npmjs.com/package/@11ty/eleventy-cache-assets).
 
