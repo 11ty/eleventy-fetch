@@ -75,6 +75,17 @@ test("Unique hashes for different HTTP methods", async t => {
 	t.not(cachePath1, cachePath2);
 });
 
+test("Unique hashes for different HTTP bodies", async t => {
+	let sameURL = 'https://example.com/';
+	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: { body: "123" }
+	}).cachePath;
+	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: { body: "456" }
+	}).cachePath;
+	t.not(cachePath1, cachePath2);
+});
+
 test("Fetching!", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac = new RemoteAssetCache(pngUrl);
