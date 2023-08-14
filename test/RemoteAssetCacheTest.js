@@ -53,6 +53,28 @@ test("Unique hashes for URLs", async t => {
   t.not(cachePath1, cachePath2);
 });
 
+test("Same hashes for implicit and explicit HTTP GET", async t => {
+	let sameURL = 'https://example.com/';
+	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: { method: "GET" }
+	}).cachePath;
+	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: {  }
+	}).cachePath;
+	t.is(cachePath1, cachePath2);
+});
+
+test("Unique hashes for different HTTP methods", async t => {
+	let sameURL = 'https://example.com/';
+	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: { method: "POST" }
+	}).cachePath;
+	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
+		fetchOptions: { method: "DELETE" }
+	}).cachePath;
+	t.not(cachePath1, cachePath2);
+});
+
 test("Fetching!", async t => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac = new RemoteAssetCache(pngUrl);
