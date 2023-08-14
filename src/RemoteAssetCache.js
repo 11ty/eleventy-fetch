@@ -11,10 +11,16 @@ class RemoteAssetCache extends AssetCache {
 		if(options.removeUrlQueryParams) {
 			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
-		let cacheKey = cleanUrl;
-		if(options.fetchOptions && options.fetchOptions.method && options.fetchOptions.method !== "GET") {
-			cacheKey = options.fetchOptions.method + cacheKey;
+		let cacheKey = [cleanUrl];
+		if(options.fetchOptions) {
+			if(options.fetchOptions.method && options.fetchOptions.method !== "GET") {
+				cacheKey.push(options.fetchOptions.method);
+			}
+			if(options.fetchOptions.body) {
+				cacheKey.push(options.fetchOptions.body);
+			}
 		}
+		cacheKey = cacheKey.length > 1 ? JSON.stringify(cacheKey) : cleanUrl;
 		super(cacheKey, cacheDirectory, options);
 
 		this.url = url;
