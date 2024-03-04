@@ -35,7 +35,7 @@ class RemoteAssetCache extends AssetCache {
 
 	log(message) {
 		if(this.options.verbose) {
-			console.log(message);
+			console.log(`[11ty/eleventy-fetch] ${message}`);
 		} else {
 			debug(message);
 		}
@@ -63,12 +63,13 @@ class RemoteAssetCache extends AssetCache {
 		// Important: no disk writes when dryRun
 		// As of Fetch v4, reads are now allowed!
 		if(super.isCacheValid(duration) ) {
+			this.log( `Using cached version of: ${this.displayUrl}` );
 			return super.getCachedValue();
 		}
 
 		try {
 			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
-			this.log( `[11ty/eleventy-fetch] ${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
+			this.log( `${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
 
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 			let response = await fetch(this.url, fetchOptions);
@@ -84,8 +85,8 @@ class RemoteAssetCache extends AssetCache {
 			return body;
 		} catch(e) {
 			if(this.cachedObject) {
-				this.log( `[11ty/eleventy-fetch] Error fetching ${this.displayUrl}. Message: ${e.message}`);
-				this.log( `[11ty/eleventy-fetch] Failing gracefully with an expired cache entry.` );
+				this.log( `Error fetching ${this.displayUrl}. Message: ${e.message}`);
+				this.log( `Failing gracefully with an expired cache entry.` );
 				return super.getCachedValue();
 			} else {
 				return Promise.reject(e);
