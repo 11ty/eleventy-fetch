@@ -26,14 +26,12 @@ const AssetCache = saveLocal.AssetCache;
 	// });
 	// promises.push(json);
 
-	// let asset = new AssetCache("twitter-followers-eleven_ty");
-	// if(asset.isCacheValid("4d")) {
-	// 	console.log( "Found cached value" );
-	// 	console.log( await asset.getCachedValue() );
-	// } else {
-	// 	console.log( "Saving value" );
-	// 	asset.save({ followers: 42 }, "json");
-	// }
+	let asset = new AssetCache("twitter-followers-eleven_ty");
+	if(asset.isCacheValid("4d")) {
+		console.log( await asset.getCachedValue() );
+	} else {
+		asset.save({ followers: 42 }, "json");
+	}
 
 	await Promise.all(promises);
 

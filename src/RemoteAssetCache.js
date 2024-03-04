@@ -33,14 +33,6 @@ class RemoteAssetCache extends AssetCache {
 		return url;
 	}
 
-	log(message) {
-		if(this.options.verbose) {
-			console.log(`[11ty/eleventy-fetch] ${message}`);
-		} else {
-			debug(message);
-		}
-	}
-
 	get url() {
 		return this._url;
 	}
@@ -63,13 +55,13 @@ class RemoteAssetCache extends AssetCache {
 		// Important: no disk writes when dryRun
 		// As of Fetch v4, reads are now allowed!
 		if(super.isCacheValid(duration) ) {
-			this.log( `Using cached version of: ${this.displayUrl}` );
+			this.log( `Cache hit for ${this.displayUrl}` );
 			return super.getCachedValue();
 		}
 
 		try {
 			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
-			this.log( `${isDryRun? "Fetching" : "Caching"}: ${this.displayUrl}` );
+			this.log( `${isDryRun? "Fetching" : "Cache miss for"} ${this.displayUrl}`);
 
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 			let response = await fetch(this.url, fetchOptions);

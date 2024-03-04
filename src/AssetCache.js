@@ -8,10 +8,19 @@ const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
 	constructor(uniqueKey, cacheDirectory, options = {}) {
+		this.uniqueKey = uniqueKey;
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
 		this.options = options;
+	}
+
+	log(message) {
+		if(this.options.verbose) {
+			console.log(`[11ty/eleventy-fetch] ${message}`);
+		} else {
+			debug(message);
+		}
 	}
 
 	// Defult hashLength also set in global options, duplicated here for tests
@@ -60,7 +69,7 @@ class AssetCache {
 	get rootDir() {
 		// Work in an AWS Lambda (serverless)
 		// https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html
-	
+
 		// Bad: LAMBDA_TASK_ROOT is /var/task/ on AWS so we must use ELEVENTY_ROOT
 		// When using ELEVENTY_ROOT, cacheDirectory must be relative
 		// (we are bundling the cache files into the serverless function)
@@ -132,8 +141,12 @@ class AssetCache {
 		if(type === "json") {
 			contents = JSON.stringify(contents);
 		}
+
+		let contentPath = this.getCachedContentsPath(type);
+
 		// the contents must exist before the cache metadata are saved below
-		await fsp.writeFile(this.getCachedContentsPath(type), contents);
+		await fsp.writeFile(contentPath, contents);
+		debug(`Writing ${contentPath}`);
 
 		let cache = this.cache;
 		cache.setKey(this.hash, {
@@ -145,6 +158,8 @@ class AssetCache {
 
 	async getCachedContents(type) {
 		let contentPath = this.getCachedContentsPath(type);
+		debug(`Fetching from cache ${contentPath}`);
+
 		if(type === "json") {
 			return require(contentPath);
 		}
@@ -211,9 +226,11 @@ class AssetCache {
 	async fetch(options) {
 		if( this.isCacheValid(options.duration) ) {
 			// promise
+			this.log( `Using cached version of: ${this.uniqueKey}` );
 			return this.getCachedValue();
 		}
 
+		this.log( `Saving ${this.uniqueKey} to ${this.cacheFilename}` );
 		await this.save(this.source, options.type);
 
 		return this.source;
