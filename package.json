@@ -12,7 +12,8 @@
   "main": "eleventy-fetch.js",
   "scripts": {
     "test": "ava",
-    "sample": "node sample"
+    "sample": "node sample",
+    "format": "prettier . --write"
   },
   "files": [
     "src/",
@@ -40,7 +41,8 @@
   },
   "homepage": "https://github.com/11ty/eleventy-fetch#readme",
   "devDependencies": {
-    "ava": "^5.2.0"
+    "ava": "^5.2.0",
+    "prettier": "^3.1.1"
   },
   "dependencies": {
     "debug": "^4.3.4",
