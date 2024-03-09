@@ -7,8 +7,14 @@ const { createHash } = require("crypto");
 const debug = require("debug")("EleventyCacheAssets");
 
 class AssetCache {
-	constructor(uniqueKey, cacheDirectory, options = {}) {
-		this.uniqueKey = uniqueKey;
+	constructor(url, cacheDirectory, options = {}) {
+		let uniqueKey;
+		if ((typeof url === "object" && typeof url.then === "function") || (typeof url === "function" && url.constructor.name === "AsyncFunction")) {
+			uniqueKey = options.formatUrlForDisplay();
+		} else {
+			uniqueKey = url;
+		}
+
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
@@ -24,6 +30,7 @@ class AssetCache {
 	}
 
 	// Defult hashLength also set in global options, duplicated here for tests
+	// Default hashLength also set in global options, duplicated here for tests
 	static getHash(url, hashLength = 30) {
 		let hash = createHash("sha256");
 		hash.update(url);

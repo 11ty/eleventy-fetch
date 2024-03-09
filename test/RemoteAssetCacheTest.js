@@ -4,6 +4,12 @@ const { Util } = require("../");
 const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
+// Cause is an optional enhancement for Node 16.19+
+let [major, minor] = process.version.split(".");
+major = parseInt(major.startsWith("v") ? major.slice(1) : major, 10);
+minor = parseInt(minor, 10);
+const isCauseSupported = major > 16 || major === 16 && minor > 19;
+
 test("getDurationMs", t => {
 	let cache = new RemoteAssetCache("lksdjflkjsdf");
 	t.is(cache.getDurationMs("1s"), 1000);
@@ -112,13 +118,96 @@ test("Error with `cause`", async t => {
 	} catch(e) {
 		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
 
-		// Cause is an optional enhancement for Node 16.19+
-		let [major, minor] = process.version.split(".");
-		major = parseInt(major.startsWith("v") ? major.slice(1) : major, 10);
-		minor = parseInt(minor, 10);
-
-		if(major > 16 || major === 16 && minor > 19) {
+		if(isCauseSupported) {
 			t.truthy(e.cause);
 		}
 	}
 });
+
+test("supports promises that resolve", async (t) => {
+	let expected = { mockKey: "mockValue" };
+	let promise = Promise.resolve(expected);
+	let asset = new RemoteAssetCache(promise, undefined, {
+	  type: "json",
+	  formatUrlForDisplay() {
+		return "resolve-promise";
+	  },
+	});
+  
+	let actual = await asset.fetch();
+  
+	t.deepEqual(actual, expected);
+  });
+  
+  test("supports promises that reject", async (t) => {
+	let expected = "mock error message";
+	let cause = new Error("mock cause");
+	let promise;
+	if (isCauseSupported) {
+	  promise = Promise.reject(new Error(expected, { cause }));
+	} else {
+	  promise = Promise.reject(new Error(expected));
+	}
+	let asset = new RemoteAssetCache(promise, undefined, {
+	  formatUrlForDisplay() {
+		return "reject-promise";
+	  },
+	});
+  
+	try {
+	  await asset.fetch();
+	} catch (e) {
+	  t.is(e.message, expected);
+  
+	  if (isCauseSupported) {
+		t.is(e.cause, cause);
+	  }
+	}
+  });
+
+  test("supports async functions that return data", async (t) => {
+	let expected = { mockKey: "mockValue" };
+	let asyncFunction = async () => {
+	  return Promise.resolve(expected);
+	};
+	let asset = new RemoteAssetCache(asyncFunction, undefined, {
+	  type: "json",
+	  formatUrlForDisplay() {
+		return "async-return";
+	  },
+	});
+  
+	let actual = await asset.fetch();
+  
+	t.deepEqual(actual, expected);
+  });
+  
+  test("supports async functions that throw", async (t) => {
+	let expected = "mock error message";
+	let cause = new Error("mock cause");
+	let asyncFunction;
+	if (isCauseSupported) {
+	  asyncFunction = async () => {
+		throw new Error(expected, { cause });
+	  };
+	} else {
+	  asyncFunction = async () => {
+		throw new Error(expected);
+	  };
+	}
+	let asset = new RemoteAssetCache(asyncFunction, undefined, {
+	  formatUrlForDisplay() {
+		return "async-throws";
+	  },
+	});
+  
+	try {
+	  await asset.fetch();
+	} catch (e) {
+	  t.is(e.message, expected);
+  
+	  if (isCauseSupported) {
+		t.is(e.cause, cause);
+	  }
+	}
+  });
