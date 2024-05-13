@@ -1,5 +1,5 @@
-const {default: PQueue} = require("p-queue");
-const debug = require("debug")("EleventyCacheAssets");
+const { default: PQueue } = require("p-queue");
+const debug = require("debug")("Eleventy:Fetch");
 
 const RemoteAssetCache = require("./src/RemoteAssetCache");
 const AssetCache = require("./src/AssetCache");
@@ -28,14 +28,14 @@ function isFullUrl(url) {
 	try {
 		new URL(url);
 		return true;
-	} catch(e) {
+	} catch (e) {
 		// invalid url OR already a local path
 		return false;
 	}
 }
 
 async function save(source, options) {
-	if(!isFullUrl(source)) {
+	if (!isFullUrl(source)) {
 		return Promise.reject(new Error("Caching an already local asset is not yet supported."));
 	}
 
@@ -45,26 +45,26 @@ async function save(source, options) {
 
 /* Queue */
 let queue = new PQueue({
-	concurrency: globalOptions.concurrency
+	concurrency: globalOptions.concurrency,
 });
 
 queue.on("active", () => {
-	debug( `Concurrency: ${queue.concurrency}, Size: ${queue.size}, Pending: ${queue.pending}` );
+	debug(`Concurrency: ${queue.concurrency}, Size: ${queue.size}, Pending: ${queue.pending}`);
 });
 
 let inProgress = {};
 
 function queueSave(source, queueCallback) {
-	if(!inProgress[source]) {
+	if (!inProgress[source]) {
 		inProgress[source] = queue.add(queueCallback).finally(() => {
 			delete inProgress[source];
 		});
 	}
-	
+
 	return inProgress[source];
 }
 
-module.exports = function(source, options) {
+module.exports = function (source, options) {
 	let mergedOptions = Object.assign({}, globalOptions, options);
 	return queueSave(source, () => {
 		return save(source, mergedOptions);
@@ -72,17 +72,17 @@ module.exports = function(source, options) {
 };
 
 Object.defineProperty(module.exports, "concurrency", {
-	get: function() {
+	get: function () {
 		return queue.concurrency;
 	},
-	set: function(concurrency) {
+	set: function (concurrency) {
 		queue.concurrency = concurrency;
 	},
 });
 
 module.exports.queue = queueSave;
 module.exports.Util = {
-	isFullUrl
+	isFullUrl,
 };
 module.exports.RemoteAssetCache = RemoteAssetCache;
 module.exports.AssetCache = AssetCache;
