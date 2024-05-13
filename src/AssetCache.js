@@ -4,7 +4,7 @@ const path = require("path");
 const flatCache = require("flat-cache");
 const { createHash } = require("crypto");
 
-const debug = require("debug")("EleventyCacheAssets");
+const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
 	constructor(uniqueKey, cacheDirectory, options = {}) {

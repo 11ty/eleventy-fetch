@@ -2,7 +2,7 @@ const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 
 const AssetCache = require("./AssetCache");
-const debug = require("debug")("EleventyCacheAssets");
+const debug = require("debug")("Eleventy:Fetch");
 
 class RemoteAssetCache extends AssetCache {
 	constructor(url, cacheDirectory, options = {}) {

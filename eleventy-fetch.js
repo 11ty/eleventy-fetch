@@ -1,5 +1,5 @@
 const {default: PQueue} = require("p-queue");
-const debug = require("debug")("EleventyFetch");
+const debug = require("debug")("Eleventy:Fetch");
 
 const RemoteAssetCache = require("./src/RemoteAssetCache");
 const AssetCache = require("./src/AssetCache");
@@ -60,7 +60,7 @@ function queueSave(source, queueCallback) {
 			delete inProgress[source];
 		});
 	}
-	
+
 	return inProgress[source];
 }
 
