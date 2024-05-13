@@ -123,6 +123,36 @@ test("Fetching (dry run)!", async (t) => {
 	t.false(ac.hasCacheFiles());
 });
 
+test("Fetching pass in URL", async (t) => {
+	let pngUrl = new URL("https://www.zachleat.com/img/avatar-2017-big.png");
+	let ac = new RemoteAssetCache(pngUrl);
+	let buffer = await ac.fetch();
+	t.is(Buffer.isBuffer(buffer), true);
+
+	try {
+		await ac.destroy();
+	} catch (e) {}
+});
+
+test("Fetching pass non-stringable", async (t) => {
+	class B {}
+
+	let ac = new RemoteAssetCache(new B(), undefined, {
+		dryRun: true,
+	});
+
+	try {
+		await ac.fetch();
+	} catch (e) {
+		t.is(
+			e.message,
+			"Failed to parse URL from [object Object]"
+		);
+		t.truthy(e.cause);
+	}
+});
+
+
 test("formatUrlForDisplay (manual query param removal)", async (t) => {
 	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
 	let longUrl =
