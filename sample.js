@@ -6,7 +6,7 @@ const AssetCache = saveLocal.AssetCache;
 (async () => {
 	saveLocal.concurrency = 2;
 	let options = {
-		duration: "4h"
+		duration: "4h",
 	};
 
 	let promises = [];
@@ -27,8 +27,8 @@ const AssetCache = saveLocal.AssetCache;
 	// promises.push(json);
 
 	let asset = new AssetCache("twitter-followers-eleven_ty");
-	if(asset.isCacheValid("4d")) {
-		console.log( await asset.getCachedValue() );
+	if (asset.isCacheValid("4d")) {
+		console.log(await asset.getCachedValue());
 	} else {
 		asset.save({ followers: 42 }, "json");
 	}
@@ -37,9 +37,8 @@ const AssetCache = saveLocal.AssetCache;
 
 	// console.log( JSON.stringify(await json).substr(0, 100), "… (truncated)" );
 
-	console.log( process.cpuUsage(startCpu) );
-	console.log( os.freemem() / (1024 * 1024), os.totalmem() / (1024 * 1024) );
+	console.log(process.cpuUsage(startCpu));
+	console.log(os.freemem() / (1024 * 1024), os.totalmem() / (1024 * 1024));
 	// console.log( process.memoryUsage() );
 	// console.log( process.resourceUsage() );
-
 })();

@@ -14,9 +14,9 @@ This plugin can save any kind of asset—JSON, HTML, images, videos, etc.
 
 ## [The full `eleventy-fetch` documentation is on 11ty.dev](https://www.11ty.dev/docs/plugins/cache/).
 
-* _This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
-* Find more [Eleventy plugins](https://www.11ty.dev/docs/plugins/).
-* Please star [Eleventy on GitHub](https://github.com/11ty/eleventy/), follow [@eleven_ty](https://twitter.com/eleven_ty) on Twitter, and support [11ty on Open Collective](https://opencollective.com/11ty)
+- _This is a plugin for the [Eleventy static site generator](https://www.11ty.dev/)._
+- Find more [Eleventy plugins](https://www.11ty.dev/docs/plugins/).
+- Please star [Eleventy on GitHub](https://github.com/11ty/eleventy/), follow [@eleven_ty](https://twitter.com/eleven_ty) on Twitter, and support [11ty on Open Collective](https://opencollective.com/11ty)
 
 [![npm Version](https://img.shields.io/npm/v/@11ty/eleventy-fetch.svg?style=for-the-badge)](https://www.npmjs.com/package/@11ty/eleventy-fetch) [![GitHub issues](https://img.shields.io/github/issues/11ty/eleventy-fetch.svg?style=for-the-badge)](https://github.com/11ty/eleventy/issues)
 
@@ -36,7 +36,6 @@ npm run test
 
 - We use the [ava JavaScript test runner](https://github.com/avajs/ava) ([Assertions documentation](https://github.com/avajs/ava/blob/master/docs/03-assertions.md))
 - ℹ️ To keep tests fast, thou shalt try to avoid writing files in tests.
-
 
 <!--
 ## Roadmap

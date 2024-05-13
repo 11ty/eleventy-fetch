@@ -5,7 +5,7 @@ const RemoteAssetCache = require("../src/RemoteAssetCache");
 
 let fsp = fs.promises;
 
-test("Double Fetch", async t => {
+test("Double Fetch", async (t) => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac1 = Cache(pngUrl);
 	let ac2 = Cache(pngUrl);
@@ -19,11 +19,11 @@ test("Double Fetch", async t => {
 	let forDestroyOnly = new RemoteAssetCache(pngUrl);
 	// file is now accessible
 	try {
-		await forDestroyOnly.destroy()
-	} catch(e) {}
+		await forDestroyOnly.destroy();
+	} catch (e) {}
 });
 
-test("Double Fetch (dry run)", async t => {
+test("Double Fetch (dry run)", async (t) => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-88.png";
 	let ac1 = Cache(pngUrl, { dryRun: true });
 	let ac2 = Cache(pngUrl, { dryRun: true });

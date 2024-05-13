@@ -16,7 +16,7 @@ class AssetCache {
 	}
 
 	log(message) {
-		if(this.options.verbose) {
+		if (this.options.verbose) {
 			console.log(`[11ty/eleventy-fetch] ${message}`);
 		} else {
 			debug(message);
@@ -27,7 +27,7 @@ class AssetCache {
 	static getHash(url, hashLength = 30) {
 		let hash = createHash("sha256");
 		hash.update(url);
-		return (""+hash.digest('hex')).substr(0, hashLength);
+		return ("" + hash.digest("hex")).substr(0, hashLength);
 	}
 
 	get source() {
@@ -43,7 +43,7 @@ class AssetCache {
 	}
 
 	set hash(value) {
-		if(value !== this._hash) {
+		if (value !== this._hash) {
 			this._cacheLocationDirty = true;
 		}
 
@@ -55,7 +55,7 @@ class AssetCache {
 	}
 
 	set cacheDirectory(dir) {
-		if(dir !== this._cacheDirectory) {
+		if (dir !== this._cacheDirectory) {
 			this._cacheLocationDirty = true;
 		}
 
@@ -73,7 +73,11 @@ class AssetCache {
 		// Bad: LAMBDA_TASK_ROOT is /var/task/ on AWS so we must use ELEVENTY_ROOT
 		// When using ELEVENTY_ROOT, cacheDirectory must be relative
 		// (we are bundling the cache files into the serverless function)
-		if(process.env.LAMBDA_TASK_ROOT && process.env.ELEVENTY_ROOT && !this.cacheDirectory.startsWith("/")) {
+		if (
+			process.env.LAMBDA_TASK_ROOT &&
+			process.env.ELEVENTY_ROOT &&
+			!this.cacheDirectory.startsWith("/")
+		) {
 			return path.resolve(process.env.ELEVENTY_ROOT, this.cacheDirectory);
 		}
 
@@ -86,7 +90,7 @@ class AssetCache {
 	}
 
 	get cache() {
-		if(!this._cache || this._cacheLocationDirty) {
+		if (!this._cache || this._cacheLocationDirty) {
 			this._cache = flatCache.load(this.cacheFilename, this.rootDir);
 		}
 		return this._cache;
@@ -95,17 +99,17 @@ class AssetCache {
 	getDurationMs(duration = "0s") {
 		let durationUnits = duration.substr(-1);
 		let durationMultiplier;
-		if(durationUnits === "s") {
+		if (durationUnits === "s") {
 			durationMultiplier = 1;
-		} else if(durationUnits === "m") {
+		} else if (durationUnits === "m") {
 			durationMultiplier = 60;
-		} else if(durationUnits === "h") {
+		} else if (durationUnits === "h") {
 			durationMultiplier = 60 * 60;
-		} else if(durationUnits === "d") {
+		} else if (durationUnits === "d") {
 			durationMultiplier = 60 * 60 * 24;
-		} else if(durationUnits === "w") {
+		} else if (durationUnits === "w") {
 			durationMultiplier = 60 * 60 * 24 * 7;
-		} else if(durationUnits === "y") {
+		} else if (durationUnits === "y") {
 			durationMultiplier = 60 * 60 * 24 * 365;
 		}
 
@@ -118,27 +122,29 @@ class AssetCache {
 	}
 
 	async ensureDir() {
-		if(this._dirEnsured) {
+		if (this._dirEnsured) {
 			return;
 		}
 
 		// make cacheDirectory if it does not exist.
-		return fsp.mkdir(this.cacheDirectory, {
-			recursive: true
-		}).then(() => {
-			this._dirEnsured = true;
-		});
+		return fsp
+			.mkdir(this.cacheDirectory, {
+				recursive: true,
+			})
+			.then(() => {
+				this._dirEnsured = true;
+			});
 	}
 
 	async save(contents, type = "buffer") {
-		if(this.options.dryRun) {
+		if (this.options.dryRun) {
 			debug("An attempt was made to save to the file system with `dryRun: true`. Skipping.");
 			return;
 		}
 
 		await this.ensureDir();
 
-		if(type === "json") {
+		if (type === "json") {
 			contents = JSON.stringify(contents);
 		}
 
@@ -151,7 +157,7 @@ class AssetCache {
 		let cache = this.cache;
 		cache.setKey(this.hash, {
 			cachedAt: Date.now(),
-			type: type
+			type: type,
 		});
 		cache.save();
 	}
@@ -160,7 +166,7 @@ class AssetCache {
 		let contentPath = this.getCachedContentsPath(type);
 		debug(`Fetching from cache ${contentPath}`);
 
-		if(type === "json") {
+		if (type === "json") {
 			return require(contentPath);
 		}
 
@@ -168,9 +174,9 @@ class AssetCache {
 	}
 
 	_backwardsCompatibilityGetCachedValue(type) {
-		if(type === "json") {
+		if (type === "json") {
 			return this.cachedObject.contents;
-		} else if(type === "text") {
+		} else if (type === "text") {
 			return this.cachedObject.contents.toString();
 		}
 
@@ -182,7 +188,7 @@ class AssetCache {
 		let type = this.cachedObject.type;
 
 		// backwards compat with old caches
-		if(this.cachedObject.contents) {
+		if (this.cachedObject.contents) {
 			return this._backwardsCompatibilityGetCachedValue(type);
 		}
 
@@ -199,9 +205,10 @@ class AssetCache {
 	}
 
 	needsToFetch(duration) {
-		if(!this.cachedObject) { // not cached
+		if (!this.cachedObject) {
+			// not cached
 			return true;
-		} else if(!duration || duration === "*") {
+		} else if (!duration || duration === "*") {
 			// no duration specified (plugin default is 1d, but if this is falsy assume infinite)
 			// "*" is infinite duration
 			return false;
@@ -214,27 +221,26 @@ class AssetCache {
 		let expiration = this.cachedObject.cachedAt + compareDuration;
 		let expirationRelative = Math.abs(Date.now() - expiration);
 
-		if(expiration > Date.now()) {
-			debug("Cache okay, expires in %o s (%o)", expirationRelative/1000, new Date(expiration));
+		if (expiration > Date.now()) {
+			debug("Cache okay, expires in %o s (%o)", expirationRelative / 1000, new Date(expiration));
 			return false;
 		}
 
-		debug("Cache expired %o s ago (%o)", expirationRelative/1000, new Date(expiration));
+		debug("Cache expired %o s ago (%o)", expirationRelative / 1000, new Date(expiration));
 		return true;
 	}
 
 	async fetch(options) {
-		if( this.isCacheValid(options.duration) ) {
+		if (this.isCacheValid(options.duration)) {
 			// promise
-			this.log( `Using cached version of: ${this.uniqueKey}` );
+			this.log(`Using cached version of: ${this.uniqueKey}`);
 			return this.getCachedValue();
 		}
 
-		this.log( `Saving ${this.uniqueKey} to ${this.cacheFilename}` );
+		this.log(`Saving ${this.uniqueKey} to ${this.cacheFilename}`);
 		await this.save(this.source, options.type);
 
 		return this.source;
-
 	}
 }
 module.exports = AssetCache;
