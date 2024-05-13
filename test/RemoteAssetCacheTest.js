@@ -69,35 +69,35 @@ test("Unique hashes for URLs", async (t) => {
 	t.not(cachePath1, cachePath2);
 });
 
-test("Same hashes for implicit and explicit HTTP GET", async t => {
-	let sameURL = 'https://example.com/';
+test("Same hashes for implicit and explicit HTTP GET", async (t) => {
+	let sameURL = "https://example.com/";
 	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: { method: "GET" }
+		fetchOptions: { method: "GET" },
 	}).cachePath;
 	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: {  }
+		fetchOptions: {},
 	}).cachePath;
 	t.is(cachePath1, cachePath2);
 });
 
-test("Unique hashes for different HTTP methods", async t => {
-	let sameURL = 'https://example.com/';
+test("Unique hashes for different HTTP methods", async (t) => {
+	let sameURL = "https://example.com/";
 	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: { method: "POST" }
+		fetchOptions: { method: "POST" },
 	}).cachePath;
 	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: { method: "DELETE" }
+		fetchOptions: { method: "DELETE" },
 	}).cachePath;
 	t.not(cachePath1, cachePath2);
 });
 
-test("Unique hashes for different HTTP bodies", async t => {
-	let sameURL = 'https://example.com/';
+test("Unique hashes for different HTTP bodies", async (t) => {
+	let sameURL = "https://example.com/";
 	let cachePath1 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: { body: "123" }
+		fetchOptions: { body: "123" },
 	}).cachePath;
 	let cachePath2 = new RemoteAssetCache(sameURL, ".cache", {
-		fetchOptions: { body: "456" }
+		fetchOptions: { body: "456" },
 	}).cachePath;
 	t.not(cachePath1, cachePath2);
 });

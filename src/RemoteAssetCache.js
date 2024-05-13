@@ -11,11 +11,11 @@ class RemoteAssetCache extends AssetCache {
 			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
 		let cacheKey = [cleanUrl];
-		if(options.fetchOptions) {
-			if(options.fetchOptions.method && options.fetchOptions.method !== "GET") {
+		if (options.fetchOptions) {
+			if (options.fetchOptions.method && options.fetchOptions.method !== "GET") {
 				cacheKey.push(options.fetchOptions.method);
 			}
-			if(options.fetchOptions.body) {
+			if (options.fetchOptions.body) {
 				cacheKey.push(options.fetchOptions.body);
 			}
 		}
