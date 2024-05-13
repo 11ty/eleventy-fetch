@@ -27,7 +27,7 @@ class AssetCache {
 	static getHash(url, hashLength = 30) {
 		let hash = createHash("sha256");
 		hash.update(url);
-		return ("" + hash.digest("hex")).substr(0, hashLength);
+		return ("" + hash.digest("hex")).slice(0, hashLength);
 	}
 
 	get source() {
