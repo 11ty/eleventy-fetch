@@ -64,13 +64,24 @@ class RemoteAssetCache extends AssetCache {
 			this.log( `${isDryRun? "Fetching" : "Cache miss for"} ${this.displayUrl}`);
 
 			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
-			let response = await fetch(this.url, fetchOptions);
-			if(!response.ok) {
-				throw new Error(`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`, { cause: response });
-			}
-
 			let type = optionsOverride.type || this.options.type;
-			let body = await this.getResponseValue(response, type);
+
+			let body;
+			if(typeof this.url === "object" && typeof this.url.then === "function") {
+				body = await this.url;
+			} else if (typeof this.url === "function" && this.url.constructor.name === "AsyncFunction") {
+				body = await this.url();
+			} else {
+				let response = await fetch(this.url, fetchOptions);
+				if (!response.ok) {
+					throw new Error(
+						`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`,
+						{ cause: response }
+					);
+				}
+	
+				body = await this.getResponseValue(response, type);
+			}
 			if(!isDryRun) {
 				await super.save(body, type);
 			}
