@@ -108,17 +108,13 @@ test("Error with `cause`", async t => {
 	let asset = new RemoteAssetCache(finalUrl);
 
 	try {
-		await asset.fetch();
+		await asset.fetch({
+			headers: {
+				"user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
+			}
+		});
 	} catch(e) {
-		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
-
-		// Cause is an optional enhancement for Node 16.19+
-		let [major, minor] = process.version.split(".");
-		major = parseInt(major.startsWith("v") ? major.slice(1) : major, 10);
-		minor = parseInt(minor, 10);
-
-		if(major > 16 || major === 16 && minor > 19) {
-			t.truthy(e.cause);
-		}
+		t.truthy(e.message.startsWith(`Bad response for https://example.com/207115/photos/243-0-1.jpg`));
+		t.truthy(e.cause);
 	}
 });
