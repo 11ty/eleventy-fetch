@@ -1,5 +1,5 @@
 const {default: PQueue} = require("p-queue");
-const debug = require("debug")("EleventyCacheAssets");
+const debug = require("debug")("EleventyFetch");
 
 const RemoteAssetCache = require("./src/RemoteAssetCache");
 const AssetCache = require("./src/AssetCache");
