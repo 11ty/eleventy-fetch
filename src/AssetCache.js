@@ -24,9 +24,18 @@ class AssetCache {
 	}
 
 	// Defult hashLength also set in global options, duplicated here for tests
-	static getHash(url, hashLength = 30) {
+	// v5.0+ key can be Array or literal
+	static getHash(key, hashLength = 30) {
 		let hash = createHash("sha256");
-		hash.update(url);
+
+		if (!Array.isArray(key)) {
+			key = [key];
+		}
+
+		for (let k of key) {
+			hash.update(k);
+		}
+
 		return ("" + hash.digest("hex")).slice(0, hashLength);
 	}
 
