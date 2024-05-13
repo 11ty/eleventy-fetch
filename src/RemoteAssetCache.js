@@ -1,7 +1,6 @@
 const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 
-const fetch = require("node-fetch");
 const AssetCache = require("./AssetCache");
 const debug = require("debug")("EleventyCacheAssets");
 
@@ -47,7 +46,7 @@ class RemoteAssetCache extends AssetCache {
 		} else if(type === "text") {
 			return response.text();
 		}
-		return response.buffer();
+		return Buffer.from(await response.arrayBuffer());
 	}
 
 	async fetch(optionsOverride = {}) {
