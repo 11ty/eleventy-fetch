@@ -10,6 +10,7 @@
 		"url": "git+https://github.com/11ty/eleventy-fetch.git"
 	},
 	"main": "eleventy-fetch.js",
+	"types": "eleventy-fetch.d.ts",
 	"scripts": {
 		"test": "ava",
 		"sample": "node sample",
@@ -41,6 +42,7 @@
 	},
 	"homepage": "https://github.com/11ty/eleventy-fetch#readme",
 	"devDependencies": {
+		"@types/node": "^20.14.6",
 		"ava": "^5.2.0",
 		"prettier": "^3.2.5"
 	},
