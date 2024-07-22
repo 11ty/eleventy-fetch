@@ -54,8 +54,11 @@
 		"files": [
 			"./test/*.js"
 		],
-		"ignoredByWatcher": [
-			"**/.cache/**"
-		]
+		"watchMode": {
+			"ignoreChanges": [
+				"**/.cache/**",
+				"**/.customcache/**"
+			]
+		}
 	}
 }
