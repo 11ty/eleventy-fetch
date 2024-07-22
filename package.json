@@ -47,7 +47,7 @@
 	"dependencies": {
 		"debug": "^4.3.5",
 		"flat-cache": "^5.0.0",
-		"p-queue": "^8.0.1"
+		"p-queue": "6.6.2"
 	},
 	"ava": {
 		"failFast": false,
