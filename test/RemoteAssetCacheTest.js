@@ -144,14 +144,10 @@ test("Fetching pass non-stringable", async (t) => {
 	try {
 		await ac.fetch();
 	} catch (e) {
-		t.is(
-			e.message,
-			"Failed to parse URL from [object Object]"
-		);
+		t.is(e.message, "Failed to parse URL from [object Object]");
 		t.truthy(e.cause);
 	}
 });
-
 
 test("formatUrlForDisplay (manual query param removal)", async (t) => {
 	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
