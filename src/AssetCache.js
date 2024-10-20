@@ -13,6 +13,26 @@ class AssetCache {
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
 		this.options = options;
+
+		// Compute the filename only once
+		if (typeof this.options.cacheFilename === 'function') {
+			this._customFilename = this.options.cacheFilename(this.uniqueKey, this.hash);
+
+			if (typeof this._customFilename !== 'string') {
+				throw new Error(`The provided cacheFilename callback function did not return a string.`);
+			}
+
+			if (typeof this._customFilename.length === 0) {
+				throw new Error(`The provided cacheFilename callback function returned an empty string.`);
+			}
+
+			// Ensure no illegal characters are present (Windows or Linux: forward/backslash, chevrons, colon, double-quote, pipe, question mark, asterisk)
+			if (this._customFilename.match(/([\/\\<>:"|?*]+?)/)) {
+				const sanitizedFilename = this._customFilename.replace(/[\/\\<>:"|?*]+/g, '');
+				console.warn(`[AssetCache] Some illegal characters were removed from the cache filename: ${this._customFilename} will be cached as ${sanitizedFilename}.`);
+				this._customFilename = sanitizedFilename;
+			}
+		}
 	}
 
 	log(message) {
@@ -77,6 +97,9 @@ class AssetCache {
 	}
 
 	get cacheFilename() {
+		if (typeof this._customFilename === 'string' && this._customFilename.length > 0) {
+			return this._customFilename;
+		}
 		return `eleventy-fetch-${this.hash}`;
 	}
 
