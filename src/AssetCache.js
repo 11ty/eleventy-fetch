@@ -33,8 +33,8 @@ class AssetCache {
 		}
 
 		for (let k of key) {
-			k = ""+k;
-			if(k) {
+			k = "" + k;
+			if (k) {
 				hash.update(k);
 			} else {
 				throw new Error(`Not able to convert asset key (${k}) to string.`);

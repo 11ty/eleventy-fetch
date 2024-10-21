@@ -41,21 +41,24 @@
 	},
 	"homepage": "https://github.com/11ty/eleventy-fetch#readme",
 	"devDependencies": {
-		"ava": "^5.2.0",
-		"prettier": "^3.2.5"
+		"ava": "^6.1.3",
+		"prettier": "^3.3.3"
 	},
 	"dependencies": {
-		"debug": "^4.3.4",
-		"flat-cache": "^3.0.4",
-		"p-queue": "^6.6.2"
+		"debug": "^4.3.5",
+		"flat-cache": "^5.0.0",
+		"p-queue": "6.6.2"
 	},
 	"ava": {
 		"failFast": false,
 		"files": [
 			"./test/*.js"
 		],
-		"ignoredByWatcher": [
-			"**/.cache/**"
-		]
+		"watchMode": {
+			"ignoreChanges": [
+				"**/.cache/**",
+				"**/.customcache/**"
+			]
+		}
 	}
 }
