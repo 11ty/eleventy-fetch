@@ -45,7 +45,7 @@
 		"prettier": "^3.3.3"
 	},
 	"dependencies": {
-		"debug": "^4.3.5",
+		"debug": "^4.3.7",
 		"flat-cache": "^5.0.0",
 		"p-queue": "6.6.2"
 	},
