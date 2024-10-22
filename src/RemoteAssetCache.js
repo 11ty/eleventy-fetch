@@ -92,6 +92,8 @@ class RemoteAssetCache extends AssetCache {
 				body = await this.url();
 			} else {
 				let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
+
+				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
 				let response = await fetch(this.url, fetchOptions);
 				if (!response.ok) {
 					throw new Error(
