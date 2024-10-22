@@ -77,15 +77,14 @@ class RemoteAssetCache extends AssetCache {
 			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
 			this.log(`${isDryRun ? "Fetching" : "Cache miss for"} ${this.displayUrl}`);
 
-			let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
-			let type = optionsOverride.type || this.options.type;
-
 			let body;
+			let type = optionsOverride.type || this.options.type;
 			if(typeof this.url === "object" && typeof this.url.then === "function") {
 				body = await this.url;
 			} else if (typeof this.url === "function" && this.url.constructor.name === "AsyncFunction") {
 				body = await this.url();
 			} else {
+				let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
 				let response = await fetch(this.url, fetchOptions);
 				if (!response.ok) {
 					throw new Error(
@@ -94,7 +93,6 @@ class RemoteAssetCache extends AssetCache {
 					);
 				}
 
-				let type = optionsOverride.type || this.options.type;
 				body = await this.getResponseValue(response, type);
 			}
 			if(!isDryRun) {
