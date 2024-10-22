@@ -4,7 +4,7 @@ const { Util } = require("../");
 const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
-test("getDurationMs", (t) => {
+test("getDurationMs", t => {
 	let cache = new RemoteAssetCache("lksdjflkjsdf");
 	t.is(cache.getDurationMs("1s"), 1000);
 	t.is(cache.getDurationMs("1m"), 60 * 1000);
@@ -190,16 +190,81 @@ test("Error with `cause`", async (t) => {
 	let asset = new RemoteAssetCache(finalUrl);
 
 	try {
-		await asset.fetch({
-			headers: {
-				"user-agent":
-					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36",
-			},
-		});
-	} catch (e) {
-		t.truthy(
-			e.message.startsWith(`Bad response for https://example.com/207115/photos/243-0-1.jpg`),
-		);
+		await asset.fetch();
+	} catch(e) {
+		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
 		t.truthy(e.cause);
+	}
+});
+
+test("supports promises that resolve", async (t) => {
+	let expected = { mockKey: "mockValue" };
+	let promise = Promise.resolve(expected);
+	let asset = new RemoteAssetCache(promise, undefined, {
+	  type: "json",
+	  formatUrlForDisplay() {
+		return "resolve-promise";
+	  },
+	});
+
+	let actual = await asset.fetch();
+
+	t.deepEqual(actual, expected);
+});
+
+test("supports promises that reject", async (t) => {
+	let expected = "mock error message";
+	let cause = new Error("mock cause");
+	let promise = Promise.reject(new Error(expected, { cause }));
+
+	let asset = new RemoteAssetCache(promise, undefined, {
+	  formatUrlForDisplay() {
+		return "reject-promise";
+	  },
+	});
+
+	try {
+	  await asset.fetch();
+	} catch (e) {
+	  t.is(e.message, expected);
+		t.is(e.cause, cause);
+	}
+});
+
+test("supports async functions that return data", async (t) => {
+	let expected = { mockKey: "mockValue" };
+	let asyncFunction = async () => {
+	  return Promise.resolve(expected);
+	};
+	let asset = new RemoteAssetCache(asyncFunction, undefined, {
+	  type: "json",
+	  formatUrlForDisplay() {
+		return "async-return";
+	  },
+	});
+
+	let actual = await asset.fetch();
+
+	t.deepEqual(actual, expected);
+});
+
+test("supports async functions that throw", async (t) => {
+	let expected = "mock error message";
+	let cause = new Error("mock cause");
+	let asyncFunction = async () => {
+		throw new Error(expected, { cause });
+  };
+
+	let asset = new RemoteAssetCache(asyncFunction, undefined, {
+	  formatUrlForDisplay() {
+		return "async-throws";
+	  },
+	});
+
+	try {
+	  await asset.fetch();
+	} catch (e) {
+	  t.is(e.message, expected);
+		t.is(e.cause, cause);
 	}
 });

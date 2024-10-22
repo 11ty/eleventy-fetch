@@ -7,8 +7,14 @@ const { createHash } = require("crypto");
 const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
-	constructor(uniqueKey, cacheDirectory, options = {}) {
-		this.uniqueKey = uniqueKey;
+	constructor(url, cacheDirectory, options = {}) {
+		let uniqueKey;
+		if ((typeof url === "object" && typeof url.then === "function") || (typeof url === "function" && url.constructor.name === "AsyncFunction")) {
+			uniqueKey = options.formatUrlForDisplay();
+		} else {
+			uniqueKey = url;
+		}
+
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";

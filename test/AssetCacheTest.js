@@ -58,5 +58,25 @@ test("Cache path should handle slashes without creating directories, issue #14",
 	let cache = new AssetCache("lksdjflk/jsdf", "/tmp/.cache");
 	let cachePath = normalizePath(cache.cachePath);
 
+
 	t.is(cachePath, "/tmp/.cache/eleventy-fetch-135797dbf5ab1187e5003c49162602");
+});
+
+test("Uses formatUrlForDisplay when caching a promise", async t => {
+  let promise = Promise.resolve();
+  let displayUrl = 'mock-display-url'
+  let asset = new AssetCache(promise, ".customcache", {
+    formatUrlForDisplay() {
+      return displayUrl;
+    }
+  });
+  let cachePath = normalizePath(asset.cachePath);
+  let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
+
+  await asset.save({name: "Sophia Smith" }, "json");
+
+  t.truthy(fs.existsSync(jsonCachePath));
+
+  fs.unlinkSync(cachePath);
+  fs.unlinkSync(jsonCachePath);
 });
