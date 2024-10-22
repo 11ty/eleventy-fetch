@@ -7,9 +7,14 @@ const { createHash } = require("crypto");
 const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
+	#customFilename;
+
 	constructor(url, cacheDirectory, options = {}) {
 		let uniqueKey;
-		if ((typeof url === "object" && typeof url.then === "function") || (typeof url === "function" && url.constructor.name === "AsyncFunction")) {
+		if (
+			(typeof url === "object" && typeof url.then === "function") ||
+			(typeof url === "function" && url.constructor.name === "AsyncFunction")
+		) {
 			uniqueKey = options.formatUrlForDisplay();
 		} else {
 			uniqueKey = url;
@@ -21,22 +26,24 @@ class AssetCache {
 		this.options = options;
 
 		// Compute the filename only once
-		if (typeof this.options.cacheFilename === 'function') {
-			this._customFilename = this.options.cacheFilename(this.uniqueKey, this.hash);
+		if (typeof this.options.filenameFormat === "function") {
+			this.#customFilename = this.options.filenameFormat(this.uniqueKey, this.hash);
 
-			if (typeof this._customFilename !== 'string') {
+			if (typeof this.#customFilename !== "string") {
 				throw new Error(`The provided cacheFilename callback function did not return a string.`);
 			}
 
-			if (typeof this._customFilename.length === 0) {
+			if (typeof this.#customFilename.length === 0) {
 				throw new Error(`The provided cacheFilename callback function returned an empty string.`);
 			}
 
 			// Ensure no illegal characters are present (Windows or Linux: forward/backslash, chevrons, colon, double-quote, pipe, question mark, asterisk)
-			if (this._customFilename.match(/([\/\\<>:"|?*]+?)/)) {
-				const sanitizedFilename = this._customFilename.replace(/[\/\\<>:"|?*]+/g, '');
-				console.warn(`[AssetCache] Some illegal characters were removed from the cache filename: ${this._customFilename} will be cached as ${sanitizedFilename}.`);
-				this._customFilename = sanitizedFilename;
+			if (this.#customFilename.match(/([\/\\<>:"|?*]+?)/)) {
+				const sanitizedFilename = this.#customFilename.replace(/[\/\\<>:"|?*]+/g, "");
+				console.warn(
+					`[AssetCache] Some illegal characters were removed from the cache filename: ${this.#customFilename} will be cached as ${sanitizedFilename}.`,
+				);
+				this.#customFilename = sanitizedFilename;
 			}
 		}
 	}
@@ -103,8 +110,8 @@ class AssetCache {
 	}
 
 	get cacheFilename() {
-		if (typeof this._customFilename === 'string' && this._customFilename.length > 0) {
-			return this._customFilename;
+		if (typeof this.#customFilename === "string" && this.#customFilename.length > 0) {
+			return this.#customFilename;
 		}
 		return `eleventy-fetch-${this.hash}`;
 	}

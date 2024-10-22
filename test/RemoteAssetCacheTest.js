@@ -198,6 +198,10 @@ test("Error with `cause`", async (t) => {
 		);
 		t.truthy(e.cause);
 	}
+
+	try {
+		await asset.destroy();
+	} catch (e) {}
 });
 
 test("supports promises that resolve", async (t) => {
@@ -213,6 +217,10 @@ test("supports promises that resolve", async (t) => {
 	let actual = await asset.fetch();
 
 	t.deepEqual(actual, expected);
+
+	try {
+		await asset.destroy();
+	} catch (e) {}
 });
 
 test("supports promises that reject", async (t) => {
@@ -221,17 +229,21 @@ test("supports promises that reject", async (t) => {
 	let promise = Promise.reject(new Error(expected, { cause }));
 
 	let asset = new RemoteAssetCache(promise, undefined, {
-	  formatUrlForDisplay() {
-		return "reject-promise";
-	  },
+		formatUrlForDisplay() {
+			return "reject-promise";
+		},
 	});
 
 	try {
-	  await asset.fetch();
+		await asset.fetch();
 	} catch (e) {
 		t.is(e.message, expected);
 		t.is(e.cause, cause);
 	}
+
+	try {
+		await asset.destroy();
+	} catch (e) {}
 });
 
 test("supports async functions that return data", async (t) => {
@@ -249,6 +261,10 @@ test("supports async functions that return data", async (t) => {
 	let actual = await asset.fetch();
 
 	t.deepEqual(actual, expected);
+
+	try {
+		await asset.destroy();
+	} catch (e) {}
 });
 
 test("supports async functions that throw", async (t) => {
@@ -270,4 +286,8 @@ test("supports async functions that throw", async (t) => {
 		t.is(e.message, expected);
 		t.is(e.cause, cause);
 	}
+
+	try {
+		await asset.destroy();
+	} catch (e) {}
 });

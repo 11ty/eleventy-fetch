@@ -8,6 +8,13 @@ class RemoteAssetCache extends AssetCache {
 	constructor(url, cacheDirectory, options = {}) {
 		let cleanUrl = url;
 		if (options.removeUrlQueryParams) {
+			if (typeof cleanUrl !== "string") {
+				throw new Error(
+					"The `removeUrlQueryParams` option requires the cache source to be a string. Received: " +
+						typeof url,
+				);
+			}
+
 			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
 
