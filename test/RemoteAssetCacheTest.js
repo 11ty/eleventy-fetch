@@ -149,6 +149,22 @@ test("Fetching pass non-stringable", async (t) => {
 	}
 });
 
+test("Fetching pass class with toString()", async (t) => {
+	class B {
+		toString() {
+			return "https://www.zachleat.com/img/avatar-2017-big.png";
+		}
+	}
+
+	let ac = new RemoteAssetCache(new B());
+	let buffer = await ac.fetch();
+	t.is(Buffer.isBuffer(buffer), true);
+
+	try {
+		await ac.destroy();
+	} catch (e) {}
+});
+
 test("formatUrlForDisplay (manual query param removal)", async (t) => {
 	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
 	let longUrl =
