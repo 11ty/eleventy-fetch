@@ -1,7 +1,7 @@
 const fs = require("fs");
 const fsp = fs.promises; // Node 10+
 const path = require("path");
-const flatCache = require("flat-cache");
+const { create: FlatCacheCreate } = require("flat-cache");
 const { createHash } = require("crypto");
 
 const debug = require("debug")("Eleventy:Fetch");
@@ -113,6 +113,7 @@ class AssetCache {
 		if (typeof this.#customFilename === "string" && this.#customFilename.length > 0) {
 			return this.#customFilename;
 		}
+
 		return `eleventy-fetch-${this.hash}`;
 	}
 
@@ -141,7 +142,12 @@ class AssetCache {
 
 	get cache() {
 		if (!this._cache || this._cacheLocationDirty) {
-			this._cache = flatCache.load(this.cacheFilename, this.rootDir);
+			let cache = FlatCacheCreate({
+				cacheId: this.cacheFilename,
+				cacheDir: this.rootDir,
+			});
+
+			this._cache = cache;
 		}
 		return this._cache;
 	}
@@ -204,12 +210,12 @@ class AssetCache {
 		await fsp.writeFile(contentPath, contents);
 		debug(`Writing ${contentPath}`);
 
-		let cache = this.cache;
-		cache.setKey(this.hash, {
+		this.cache.set(this.hash, {
 			cachedAt: Date.now(),
 			type: type,
 		});
-		cache.save();
+
+		this.cache.save(true);
 	}
 
 	async getCachedContents(type) {
@@ -251,7 +257,7 @@ class AssetCache {
 	}
 
 	get cachedObject() {
-		return this.cache.getKey(this.hash);
+		return this.cache.get(this.hash);
 	}
 
 	needsToFetch(duration) {

@@ -49,6 +49,7 @@ test("Test a save", async (t) => {
 	await asset.save({ followers: 10 }, "json");
 
 	t.truthy(fs.existsSync(jsonCachePath));
+	t.truthy(fs.existsSync(cachePath));
 
 	fs.unlinkSync(cachePath);
 	fs.unlinkSync(jsonCachePath);

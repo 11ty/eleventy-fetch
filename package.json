@@ -46,7 +46,7 @@
 	},
 	"dependencies": {
 		"debug": "^4.3.7",
-		"flat-cache": "^5.0.0",
+		"flat-cache": "^6.1.1",
 		"p-queue": "6.6.2"
 	},
 	"ava": {
