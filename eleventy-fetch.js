@@ -35,16 +35,21 @@ function isFullUrl(url) {
 }
 
 function isAwaitable(maybeAwaitable) {
-	return (typeof maybeAwaitable === "object" && typeof maybeAwaitable.then === "function") || (maybeAwaitable.constructor.name === "AsyncFunction");
+	return (
+		(typeof maybeAwaitable === "object" && typeof maybeAwaitable.then === "function") ||
+		maybeAwaitable.constructor.name === "AsyncFunction"
+	);
 }
 
 async function save(source, options) {
-	if(!(isFullUrl(source) || isAwaitable(source))) {
+	if (!(isFullUrl(source) || isAwaitable(source))) {
 		return Promise.reject(new Error("Caching an already local asset is not yet supported."));
 	}
 
 	if (isAwaitable(source) && !options.formatUrlForDisplay) {
-		return Promise.reject(new Error("formatUrlForDisplay must be implemented, as a Promise has been provided."));
+		return Promise.reject(
+			new Error("formatUrlForDisplay must be implemented, as a Promise has been provided."),
+		);
 	}
 
 	let asset = new RemoteAssetCache(source, options.directory, options);

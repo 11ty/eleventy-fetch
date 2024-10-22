@@ -79,7 +79,7 @@ class RemoteAssetCache extends AssetCache {
 
 			let body;
 			let type = optionsOverride.type || this.options.type;
-			if(typeof this.url === "object" && typeof this.url.then === "function") {
+			if (typeof this.url === "object" && typeof this.url.then === "function") {
 				body = await this.url;
 			} else if (typeof this.url === "function" && this.url.constructor.name === "AsyncFunction") {
 				body = await this.url();
@@ -95,7 +95,7 @@ class RemoteAssetCache extends AssetCache {
 
 				body = await this.getResponseValue(response, type);
 			}
-			if(!isDryRun) {
+			if (!isDryRun) {
 				await super.save(body, type);
 			}
 			return body;

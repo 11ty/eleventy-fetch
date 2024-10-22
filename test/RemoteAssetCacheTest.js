@@ -4,7 +4,7 @@ const { Util } = require("../");
 const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
-test("getDurationMs", t => {
+test("getDurationMs", (t) => {
 	let cache = new RemoteAssetCache("lksdjflkjsdf");
 	t.is(cache.getDurationMs("1s"), 1000);
 	t.is(cache.getDurationMs("1m"), 60 * 1000);
@@ -191,8 +191,11 @@ test("Error with `cause`", async (t) => {
 
 	try {
 		await asset.fetch();
-	} catch(e) {
-		t.is(e.message, `Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`)
+	} catch (e) {
+		t.is(
+			e.message,
+			`Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`,
+		);
 		t.truthy(e.cause);
 	}
 });
@@ -201,10 +204,10 @@ test("supports promises that resolve", async (t) => {
 	let expected = { mockKey: "mockValue" };
 	let promise = Promise.resolve(expected);
 	let asset = new RemoteAssetCache(promise, undefined, {
-	  type: "json",
-	  formatUrlForDisplay() {
-		return "resolve-promise";
-	  },
+		type: "json",
+		formatUrlForDisplay() {
+			return "resolve-promise";
+		},
 	});
 
 	let actual = await asset.fetch();
@@ -226,7 +229,7 @@ test("supports promises that reject", async (t) => {
 	try {
 	  await asset.fetch();
 	} catch (e) {
-	  t.is(e.message, expected);
+		t.is(e.message, expected);
 		t.is(e.cause, cause);
 	}
 });
@@ -234,13 +237,13 @@ test("supports promises that reject", async (t) => {
 test("supports async functions that return data", async (t) => {
 	let expected = { mockKey: "mockValue" };
 	let asyncFunction = async () => {
-	  return Promise.resolve(expected);
+		return Promise.resolve(expected);
 	};
 	let asset = new RemoteAssetCache(asyncFunction, undefined, {
-	  type: "json",
-	  formatUrlForDisplay() {
-		return "async-return";
-	  },
+		type: "json",
+		formatUrlForDisplay() {
+			return "async-return";
+		},
 	});
 
 	let actual = await asset.fetch();
@@ -253,18 +256,18 @@ test("supports async functions that throw", async (t) => {
 	let cause = new Error("mock cause");
 	let asyncFunction = async () => {
 		throw new Error(expected, { cause });
-  };
+	};
 
 	let asset = new RemoteAssetCache(asyncFunction, undefined, {
-	  formatUrlForDisplay() {
-		return "async-throws";
-	  },
+		formatUrlForDisplay() {
+			return "async-throws";
+		},
 	});
 
 	try {
-	  await asset.fetch();
+		await asset.fetch();
 	} catch (e) {
-	  t.is(e.message, expected);
+		t.is(e.message, expected);
 		t.is(e.cause, cause);
 	}
 });
