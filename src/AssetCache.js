@@ -15,6 +15,10 @@ class AssetCache {
 			(typeof url === "object" && typeof url.then === "function") ||
 			(typeof url === "function" && url.constructor.name === "AsyncFunction")
 		) {
+			if(typeof options.formatUrlForDisplay !== "function") {
+				throw new Error("When caching an arbitrary promise source, options.formatUrlForDisplay is required.");
+			}
+
 			uniqueKey = options.formatUrlForDisplay();
 		} else {
 			uniqueKey = url;
