@@ -27,7 +27,7 @@ class AssetCache {
 
 		// Compute the filename only once
 		if (typeof this.options.filenameFormat === "function") {
-			this.#customFilename = this.options.filenameFormat(this.uniqueKey, this.hash);
+			this.#customFilename = this.options.filenameFormat(uniqueKey, this.hash);
 
 			if (typeof this.#customFilename !== "string") {
 				throw new Error(`The provided cacheFilename callback function did not return a string.`);
