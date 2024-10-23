@@ -20,6 +20,7 @@ class AssetCache {
 			uniqueKey = url;
 		}
 
+		this.uniqueKey = uniqueKey;
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
