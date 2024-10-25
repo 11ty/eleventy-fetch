@@ -153,6 +153,7 @@ class AssetCache {
 			});
 
 			this._cache = cache;
+			this._cacheLocationDirty = false;
 		}
 		return this._cache;
 	}
@@ -182,6 +183,10 @@ class AssetCache {
 		return `${this.cachePath}.${type}`;
 	}
 
+	get isDirEnsured() {
+		return this._dirEnsured;
+	}
+
 	async ensureDir() {
 		if (this._dirEnsured) {
 			return;
@@ -203,7 +208,9 @@ class AssetCache {
 			return;
 		}
 
-		await this.ensureDir();
+		if(!this.isDirEnsured) {
+			await this.ensureDir();
+		}
 
 		if (type === "json") {
 			contents = JSON.stringify(contents);
@@ -213,6 +220,7 @@ class AssetCache {
 
 		// the contents must exist before the cache metadata are saved below
 		await fsp.writeFile(contentPath, contents);
+
 		debug(`Writing ${contentPath}`);
 
 		this.cache.set(this.hash, {
@@ -220,7 +228,7 @@ class AssetCache {
 			type: type,
 		});
 
-		this.cache.save(true);
+		this.cache.save();
 	}
 
 	async getCachedContents(type) {
@@ -257,22 +265,17 @@ class AssetCache {
 		return this.getCachedContents(type);
 	}
 
-	isCacheValid(duration) {
-		return this.needsToFetch(duration || this.defaultDuration) === false;
-	}
-
-	get cachedObject() {
-		return this.cache.get(this.hash);
-	}
-
-	needsToFetch(duration) {
+	isCacheValid(duration = this.defaultDuration) {
 		if (!this.cachedObject) {
 			// not cached
-			return true;
-		} else if (!duration || duration === "*") {
+			return false;
+		}
+
+		// in the cache and no duration
+		if (!duration || duration === "*") {
 			// no duration specified (plugin default is 1d, but if this is falsy assume infinite)
 			// "*" is infinite duration
-			return false;
+			return true;
 		}
 
 		debug("Cache check for: %o %o (duration: %o)", this.hash, this.source, duration);
@@ -284,11 +287,20 @@ class AssetCache {
 
 		if (expiration > Date.now()) {
 			debug("Cache okay, expires in %o s (%o)", expirationRelative / 1000, new Date(expiration));
-			return false;
+			return true;
 		}
 
 		debug("Cache expired %o s ago (%o)", expirationRelative / 1000, new Date(expiration));
-		return true;
+		return false;
+	}
+
+	get cachedObject() {
+		return this.cache.get(this.hash);
+	}
+
+	// Deprecated
+	needsToFetch(duration) {
+		return !this.isCacheValid(duration);
 	}
 
 	async fetch(options) {
@@ -299,6 +311,7 @@ class AssetCache {
 		}
 
 		this.log(`Saving ${this.uniqueKey} to ${this.cacheFilename}`);
+
 		await this.save(this.source, options.type);
 
 		return this.source;
@@ -311,12 +324,17 @@ class AssetCache {
 
 	// for testing
 	async destroy() {
-		if (fs.existsSync(this.cachePath)) {
-			await fsp.unlink(this.cachePath);
-		}
-		if (fs.existsSync(this.getCachedContentsPath())) {
-			await fsp.unlink(this.getCachedContentsPath());
-		}
+		let paths = [];
+		paths.push(this.cachePath);
+		paths.push(this.getCachedContentsPath("json"));
+		paths.push(this.getCachedContentsPath("text"));
+		paths.push(this.getCachedContentsPath("buffer"));
+
+		await Promise.all(paths.map(path => {
+			if (fs.existsSync(path)) {
+				return fsp.unlink(path);
+			}
+		}))
 	}
 }
 module.exports = AssetCache;

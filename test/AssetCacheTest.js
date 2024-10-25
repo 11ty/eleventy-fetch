@@ -77,23 +77,33 @@ test("Uses formatUrlForDisplay when caching a promise", async (t) => {
 
 	t.truthy(fs.existsSync(jsonCachePath));
 
-	fs.unlinkSync(cachePath);
-	fs.unlinkSync(jsonCachePath);
+	await asset.destroy();
+
+	t.falsy(fs.existsSync(cachePath));
+	t.falsy(fs.existsSync(jsonCachePath));
 });
 
 test("Uses filenameFormat", async (t) => {
 	let asset = new AssetCache("some-thing", undefined, {
 		filenameFormat() {
-			return "testing.json";
+			// don’t include the file extension
+			return "testing";
 		},
 	});
 
 	let cachePath = normalizePath(asset.cachePath);
-	t.truthy(cachePath.endsWith("/.cache/testing.json"))
+	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
+
+	t.truthy(cachePath.endsWith("/.cache/testing"));
+	t.truthy(jsonCachePath.endsWith("/.cache/testing.json"));
 
 	await asset.save({ name: "Sophia Smith" }, "json");
 
 	t.truthy(fs.existsSync(cachePath));
+	t.truthy(fs.existsSync(jsonCachePath));
 
-	asset.destroy();
+	await asset.destroy();
+
+	t.falsy(fs.existsSync(cachePath));
+	t.falsy(fs.existsSync(jsonCachePath));
 });
