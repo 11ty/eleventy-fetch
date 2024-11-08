@@ -67,21 +67,28 @@ queue.on("active", () => {
 
 let inProgress = {};
 
-function queueSave(source, queueCallback) {
-	if (!inProgress[source]) {
-		inProgress[source] = queue.add(queueCallback).finally(() => {
-			delete inProgress[source];
+function queueSave(source, queueCallback, options) {
+	let sourceKey;
+	if(typeof source === "string") {
+		sourceKey = source;
+	} else {
+		sourceKey = RemoteAssetCache.getUid(source, options);
+	}
+
+	if (!inProgress[sourceKey]) {
+		inProgress[sourceKey] = queue.add(queueCallback).finally(() => {
+			delete inProgress[sourceKey];
 		});
 	}
 
-	return inProgress[source];
+	return inProgress[sourceKey];
 }
 
 module.exports = function (source, options) {
 	let mergedOptions = Object.assign({}, globalOptions, options);
 	return queueSave(source, () => {
 		return save(source, mergedOptions);
-	});
+	}, mergedOptions);
 };
 
 Object.defineProperty(module.exports, "concurrency", {

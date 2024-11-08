@@ -1,24 +1,34 @@
-const fs = require("fs");
-const fsp = fs.promises; // Node 10+
-
 const AssetCache = require("./AssetCache");
-const debug = require("debug")("Eleventy:Fetch");
+// const debug = require("debug")("Eleventy:Fetch");
 
 class RemoteAssetCache extends AssetCache {
 	constructor(url, cacheDirectory, options = {}) {
 		let cleanUrl = url;
 		if (options.removeUrlQueryParams) {
-			if (typeof cleanUrl !== "string") {
-				throw new Error(
-					"The `removeUrlQueryParams` option requires the cache source to be a string. Received: " +
-						typeof url,
-				);
-			}
-
 			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
 		}
 
-		let cacheKey = [cleanUrl];
+		// Must run after removeUrlQueryParams
+		let displayUrl = RemoteAssetCache.convertUrlToString(cleanUrl, options);
+		let cacheKeyArray = RemoteAssetCache.getCacheKey(displayUrl, options);
+
+		super(cacheKeyArray, cacheDirectory, options);
+
+		this.url = url;
+		this.options = options;
+
+		this.displayUrl = displayUrl;
+	}
+
+	static getUid(source, options) {
+		let displayUrl = RemoteAssetCache.convertUrlToString(source, options);
+		let cacheKeyArray = RemoteAssetCache.getCacheKey(displayUrl, options);
+		return cacheKeyArray.join(",");
+	}
+
+	static getCacheKey(source, options) {
+		// Promise sources are handled upstream
+		let cacheKey = [source];
 
 		if (options.fetchOptions) {
 			if (options.fetchOptions.method && options.fetchOptions.method !== "GET") {
@@ -29,29 +39,33 @@ class RemoteAssetCache extends AssetCache {
 			}
 		}
 
-		super(cacheKey, cacheDirectory, options);
-
-		this.url = url;
-		this.options = options;
-
-		// Important: runs after removeUrlQueryParams
-		this.displayUrl = this.formatUrlForDisplay(cleanUrl);
+		return cacheKey;
 	}
 
 	static cleanUrl(url) {
-		let cleanUrl = new URL(url);
+		if(typeof url !== "string" && !(url instanceof URL)) {
+			return url;
+		}
+
+		let cleanUrl;
+		if(typeof url === "string") {
+			cleanUrl = new URL(url);
+		} else if(url instanceof URL) {
+			cleanUrl = url;
+		}
+
 		cleanUrl.search = new URLSearchParams([]);
+
 		return cleanUrl.toString();
 	}
 
-	formatUrlForDisplay(url) {
-		if (
-			this.options.formatUrlForDisplay &&
-			typeof this.options.formatUrlForDisplay === "function"
-		) {
-			return this.options.formatUrlForDisplay(url);
+	static convertUrlToString(source, options = {}) {
+		let { formatUrlForDisplay } = options;
+		if (formatUrlForDisplay && typeof formatUrlForDisplay === "function") {
+			return formatUrlForDisplay(source);
 		}
-		return url;
+
+		return source;
 	}
 
 	get url() {

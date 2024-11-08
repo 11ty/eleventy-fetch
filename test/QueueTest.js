@@ -3,8 +3,6 @@ const fs = require("fs");
 const Cache = require("../");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
-let fsp = fs.promises;
-
 test("Double Fetch", async (t) => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac1 = Cache(pngUrl);
@@ -39,4 +37,35 @@ test("Double Fetch (dry run)", async (t) => {
 	});
 	// file is now accessible
 	t.false(forTestOnly.hasCacheFiles());
+});
+
+test("Double Fetch async function (dry run)", async (t) => {
+	let expected = { mockKey: "mockValue" };
+
+	async function fetch() {
+		return Promise.resolve(expected);
+	};
+
+let ac1 = Cache(fetch, {
+	dryRun: true,
+	formatUrlForDisplay() {
+		return "fetch-1";
+	},
+});
+let ac2 = Cache(fetch, {
+	dryRun: true,
+	formatUrlForDisplay() {
+		return "fetch-2";
+	},
+});
+
+	// Make sure we only fetch once!
+	t.not(ac1, ac2);
+
+	let result1 = await ac1;
+	let result2 = await ac2;
+
+	t.deepEqual(result1, result2);
+	t.deepEqual(result1, expected);
+	t.deepEqual(result2, expected);
 });

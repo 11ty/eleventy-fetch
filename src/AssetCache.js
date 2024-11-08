@@ -9,22 +9,32 @@ const debug = require("debug")("Eleventy:Fetch");
 class AssetCache {
 	#customFilename;
 
-	constructor(url, cacheDirectory, options = {}) {
-		let uniqueKey;
+	static getCacheKey(source, options) {
+		// RemoteAssetCache sends this an Array, which skips this altogether
 		if (
-			(typeof url === "object" && typeof url.then === "function") ||
-			(typeof url === "function" && url.constructor.name === "AsyncFunction")
+			(typeof source === "object" && typeof source.then === "function") ||
+			(typeof source === "function" && source.constructor.name === "AsyncFunction")
 		) {
 			if(typeof options.formatUrlForDisplay !== "function") {
-				throw new Error("When caching an arbitrary promise source, options.formatUrlForDisplay is required.");
+				throw new Error("When caching an arbitrary promise source, an options.formatUrlForDisplay() callback is required.");
 			}
 
-			uniqueKey = options.formatUrlForDisplay();
-		} else {
-			uniqueKey = url;
+			return options.formatUrlForDisplay();
 		}
 
+		return source;
+	}
+
+	constructor(url, cacheDirectory, options = {}) {
+		let uniqueKey;
+		// RemoteAssetCache passes in an array
+		if(Array.isArray(uniqueKey)) {
+			uniqueKey = uniqueKey.join(",");
+		} else {
+			uniqueKey = AssetCache.getCacheKey(url, options);
+		}
 		this.uniqueKey = uniqueKey;
+
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
