@@ -283,6 +283,7 @@ class AssetCache {
 			return {
 				...this.cachedObject.metadata?.response,
 				body: await this.getCachedContents(type),
+				cache: "hit",
 			}
 		}
 

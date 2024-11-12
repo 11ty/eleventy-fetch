@@ -343,13 +343,14 @@ test("type: parsed-xml", async (t) => {
 	t.is(xml.children.length, 1)
 });
 
-test("raw: true", async (t) => {
+test("raw: true, cache miss", async (t) => {
 	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
 	let ac = new RemoteAssetCache(feedUrl, ".cache", {
 		type: "xml",
 		returnType: "response",
 	});
 	let response = await ac.fetch();
+
 	try {
 		await ac.destroy();
 	} catch (e) {}
@@ -360,4 +361,26 @@ test("raw: true", async (t) => {
 	t.truthy(response.headers.server);
 	t.truthy(response.headers['last-modified']);
 	t.truthy(response.body);
+	t.is(response.cache, "miss");
+});
+
+
+test("raw: true, cache hit", async (t) => {
+	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
+	let ac = new RemoteAssetCache(feedUrl, ".cache", {
+		type: "xml",
+		returnType: "response",
+	});
+
+	// miss
+	await ac.fetch();
+
+	// hit
+	let response = await ac.fetch();
+
+	try {
+		await ac.destroy();
+	} catch (e) {}
+
+	t.is(response.cache, "hit");
 });

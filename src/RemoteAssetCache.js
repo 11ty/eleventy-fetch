@@ -149,7 +149,8 @@ class RemoteAssetCache extends AssetCache {
 			if(this.options.returnType === "response") {
 				return {
 					...metadata.response,
-					body
+					body,
+					cache: "miss",
 				}
 			}
 
