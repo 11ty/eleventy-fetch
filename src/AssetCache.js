@@ -195,6 +195,12 @@ class AssetCache {
 	}
 
 	getCachedContentsPath(type = "buffer") {
+		if(type === "xml") {
+			type = "text";
+		} else if(type === "parsed-xml") {
+			type = "json";
+		}
+
 		return `${this.cachePath}.${type}`;
 	}
 
@@ -227,7 +233,7 @@ class AssetCache {
 			await this.ensureDir();
 		}
 
-		if (type === "json") {
+		if (type === "json" || type === "parsed-xml") {
 			contents = JSON.stringify(contents);
 		}
 
@@ -250,7 +256,7 @@ class AssetCache {
 		let contentPath = this.getCachedContentsPath(type);
 		debug(`Fetching from cache ${contentPath}`);
 
-		if (type === "json") {
+		if (type === "json" || type === "parsed-xml") {
 			return require(contentPath);
 		}
 

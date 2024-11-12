@@ -1,3 +1,5 @@
+const { parseXml } = require('@rgrove/parse-xml');
+
 const Sources = require("./Sources.js");
 const AssetCache = require("./AssetCache.js");
 // const debug = require("debug")("Eleventy:Fetch");
@@ -29,6 +31,10 @@ class RemoteAssetCache extends AssetCache {
 		let cacheKey = {
 			source: AssetCache.getCacheKey(source, options),
 		};
+
+		if(options.type === "xml" || options.type === "parsed-xml") {
+			cacheKey.type = options.type;
+		}
 
 		if (options.fetchOptions) {
 			if (options.fetchOptions.method && options.fetchOptions.method !== "GET") {
@@ -80,8 +86,10 @@ class RemoteAssetCache extends AssetCache {
 	async getResponseValue(response, type) {
 		if (type === "json") {
 			return response.json();
-		} else if (type === "text") {
+		} else if (type === "text" || type === "xml") {
 			return response.text();
+		} else if(type === "parsed-xml") {
+			return parseXml(await response.text());
 		}
 		return Buffer.from(await response.arrayBuffer());
 	}

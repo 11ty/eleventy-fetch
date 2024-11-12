@@ -312,3 +312,29 @@ test("supports async functions that throw", async (t) => {
 		await asset.destroy();
 	} catch (e) {}
 });
+
+test("type: xml", async (t) => {
+	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
+	let ac = new RemoteAssetCache(feedUrl, ".cache", {
+		type: "xml"
+	});
+	let xml = await ac.fetch();
+	t.true(xml.length > 50)
+
+	try {
+		await ac.destroy();
+	} catch (e) {}
+});
+
+test("type: parsed-xml", async (t) => {
+	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
+	let ac = new RemoteAssetCache(feedUrl, ".cache", {
+		type: "parsed-xml"
+	});
+	let xml = await ac.fetch();
+	t.is(xml.children.length, 1)
+
+	try {
+		await ac.destroy();
+	} catch (e) {}
+});

@@ -45,6 +45,7 @@
 		"prettier": "^3.3.3"
 	},
 	"dependencies": {
+		"@rgrove/parse-xml": "^4.2.0",
 		"debug": "^4.3.7",
 		"flat-cache": "^6.1.1",
 		"p-queue": "6.6.2"
