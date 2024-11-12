@@ -1,57 +1,63 @@
-const AssetCache = require("./AssetCache");
+const Sources = require("./Sources.js");
+const AssetCache = require("./AssetCache.js");
 // const debug = require("debug")("Eleventy:Fetch");
 
 class RemoteAssetCache extends AssetCache {
-	constructor(url, cacheDirectory, options = {}) {
-		let cleanUrl = url;
-		if (options.removeUrlQueryParams) {
-			cleanUrl = RemoteAssetCache.cleanUrl(cleanUrl);
-		}
+	constructor(source, cacheDirectory, options = {}) {
+		let requestId = RemoteAssetCache.getRequestId(source, options);
+		super(requestId, cacheDirectory, options);
 
-		// Must run after removeUrlQueryParams
-		let displayUrl = RemoteAssetCache.convertUrlToString(cleanUrl, options);
-		let cacheKeyArray = RemoteAssetCache.getCacheKey(displayUrl, options);
-
-		super(cacheKeyArray, cacheDirectory, options);
-
-		this.url = url;
+		this.source = source;
 		this.options = options;
-
-		this.displayUrl = displayUrl;
+		this.displayUrl = RemoteAssetCache.convertUrlToString(source, options);
 	}
 
-	static getUid(source, options) {
-		let displayUrl = RemoteAssetCache.convertUrlToString(source, options);
-		let cacheKeyArray = RemoteAssetCache.getCacheKey(displayUrl, options);
-		return cacheKeyArray.join(",");
+	static getRequestId(source, options) {
+		if (Sources.isValidComplexSource(source)) {
+			return this.getCacheKey(source, options);
+		}
+
+		if (options.removeUrlQueryParams) {
+			let cleaned = this.cleanUrl(source);
+			return this.getCacheKey(cleaned, options);
+		}
+
+		return this.getCacheKey(source, options);
 	}
 
 	static getCacheKey(source, options) {
-		// Promise sources are handled upstream
-		let cacheKey = [source];
+		let cacheKey = {
+			source: AssetCache.getCacheKey(source, options),
+		};
 
 		if (options.fetchOptions) {
 			if (options.fetchOptions.method && options.fetchOptions.method !== "GET") {
-				cacheKey.push(options.fetchOptions.method);
+				cacheKey.method = options.fetchOptions.method;
 			}
 			if (options.fetchOptions.body) {
-				cacheKey.push(options.fetchOptions.body);
+				cacheKey.body = options.fetchOptions.body;
 			}
 		}
 
-		return cacheKey;
+		if(Object.keys(cacheKey).length > 1) {
+			return JSON.stringify(cacheKey);
+		}
+
+		return cacheKey.source;
 	}
 
 	static cleanUrl(url) {
-		if(typeof url !== "string" && !(url instanceof URL)) {
+		if(!Sources.isFullUrl(url)) {
 			return url;
 		}
 
 		let cleanUrl;
-		if(typeof url === "string") {
+		if(typeof url === "string" || typeof url.toString === "function") {
 			cleanUrl = new URL(url);
 		} else if(url instanceof URL) {
 			cleanUrl = url;
+		} else {
+			throw new Error("Invalid source for cleanUrl: " + url)
 		}
 
 		cleanUrl.search = new URLSearchParams([]);
@@ -60,20 +66,15 @@ class RemoteAssetCache extends AssetCache {
 	}
 
 	static convertUrlToString(source, options = {}) {
+		// removes query params
+		source = RemoteAssetCache.cleanUrl(source);
+
 		let { formatUrlForDisplay } = options;
 		if (formatUrlForDisplay && typeof formatUrlForDisplay === "function") {
-			return formatUrlForDisplay(source);
+			return "" + formatUrlForDisplay(source);
 		}
 
-		return source;
-	}
-
-	get url() {
-		return this._url;
-	}
-
-	set url(url) {
-		this._url = url;
+		return "" + source;
 	}
 
 	async getResponseValue(response, type) {
@@ -100,15 +101,19 @@ class RemoteAssetCache extends AssetCache {
 
 			let body;
 			let type = optionsOverride.type || this.options.type;
-			if (typeof this.url === "object" && typeof this.url.then === "function") {
-				body = await this.url;
-			} else if (typeof this.url === "function" && this.url.constructor.name === "AsyncFunction") {
-				body = await this.url();
+			if (typeof this.source === "object" && typeof this.source.then === "function") {
+				body = await this.source;
+			} else if (typeof this.source === "function") {
+				// sync or async function
+				body = await this.source();
 			} else {
 				let fetchOptions = optionsOverride.fetchOptions || this.options.fetchOptions || {};
+				if(!Sources.isFullUrl(this.source)) {
+					throw Sources.getInvalidSourceError(this.source);
+				}
 
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
-				let response = await fetch(this.url, fetchOptions);
+				let response = await fetch(this.source, fetchOptions);
 				if (!response.ok) {
 					throw new Error(
 						`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`,

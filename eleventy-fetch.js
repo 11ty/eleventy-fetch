@@ -1,8 +1,9 @@
 const { default: PQueue } = require("p-queue");
 const debug = require("debug")("Eleventy:Fetch");
 
-const RemoteAssetCache = require("./src/RemoteAssetCache");
-const AssetCache = require("./src/AssetCache");
+const Sources = require("./src/Sources.js");
+const RemoteAssetCache = require("./src/RemoteAssetCache.js");
+const AssetCache = require("./src/AssetCache.js");
 
 const globalOptions = {
 	type: "buffer",
@@ -24,38 +25,6 @@ const globalOptions = {
 	hashLength: 30,
 };
 
-function isFullUrl(url) {
-	try {
-		new URL(url);
-		return true;
-	} catch (e) {
-		// invalid url OR already a local path
-		return false;
-	}
-}
-
-function isAwaitable(maybeAwaitable) {
-	return (
-		(typeof maybeAwaitable === "object" && typeof maybeAwaitable.then === "function") ||
-		maybeAwaitable.constructor.name === "AsyncFunction"
-	);
-}
-
-async function save(source, options) {
-	if (!(isFullUrl(source) || isAwaitable(source))) {
-		return Promise.reject(new Error("Caching an already local asset is not yet supported."));
-	}
-
-	if (isAwaitable(source) && !options.formatUrlForDisplay) {
-		return Promise.reject(
-			new Error("formatUrlForDisplay must be implemented, as a Promise has been provided."),
-		);
-	}
-
-	let asset = new RemoteAssetCache(source, options.directory, options);
-	return asset.fetch(options);
-}
-
 /* Queue */
 let queue = new PQueue({
 	concurrency: globalOptions.concurrency,
@@ -68,11 +37,9 @@ queue.on("active", () => {
 let inProgress = {};
 
 function queueSave(source, queueCallback, options) {
-	let sourceKey;
-	if(typeof source === "string") {
-		sourceKey = source;
-	} else {
-		sourceKey = RemoteAssetCache.getUid(source, options);
+	let sourceKey = RemoteAssetCache.getRequestId(source, options);
+	if(!sourceKey) {
+		return Promise.reject(Sources.getInvalidSourceError(source));
 	}
 
 	if (!inProgress[sourceKey]) {
@@ -85,9 +52,14 @@ function queueSave(source, queueCallback, options) {
 }
 
 module.exports = function (source, options) {
+	if (!Sources.isFullUrl(source) && !Sources.isValidSource(source)) {
+		throw new Error("Caching an already local asset is not yet supported.");
+	}
+
 	let mergedOptions = Object.assign({}, globalOptions, options);
 	return queueSave(source, () => {
-		return save(source, mergedOptions);
+		let asset = new RemoteAssetCache(source, mergedOptions.directory, mergedOptions);
+		return asset.fetch(mergedOptions);
 	}, mergedOptions);
 };
 
@@ -102,7 +74,8 @@ Object.defineProperty(module.exports, "concurrency", {
 
 module.exports.queue = queueSave;
 module.exports.Util = {
-	isFullUrl,
+	isFullUrl: Sources.isFullUrl,
 };
 module.exports.RemoteAssetCache = RemoteAssetCache;
 module.exports.AssetCache = AssetCache;
+module.exports.Sources = Sources;

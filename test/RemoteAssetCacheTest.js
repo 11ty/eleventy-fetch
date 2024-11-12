@@ -5,7 +5,7 @@ const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
 test("getDurationMs", (t) => {
-	let cache = new RemoteAssetCache("lksdjflkjsdf");
+	let cache = new RemoteAssetCache("https://example.com/");
 	t.is(cache.getDurationMs("1s"), 1000);
 	t.is(cache.getDurationMs("1m"), 60 * 1000);
 	t.is(cache.getDurationMs("1h"), 60 * 60 * 1000);
@@ -135,18 +135,17 @@ test("Fetching pass in URL", async (t) => {
 });
 
 test("Fetching pass non-stringable", async (t) => {
-	class B {}
+	let e = await t.throwsAsync(async () => {
+		class B {}
+		let source = new B();
 
-	let ac = new RemoteAssetCache(new B(), undefined, {
-		dryRun: true,
+		let ac = new RemoteAssetCache(source, undefined, {
+			dryRun: true,
+		});
+		await ac.fetch();
 	});
 
-	try {
-		await ac.fetch();
-	} catch (e) {
-		t.is(e.message, "Failed to parse URL from [object Object]");
-		t.truthy(e.cause);
-	}
+	t.is(e.message, "Invalid source: must be a string, function, or Promise. If a function or Promise, you must provide a `toString()` method or an `options.requestId` unique key. Received: [object Object]");
 });
 
 test("Fetching pass class with toString()", async (t) => {
@@ -196,6 +195,21 @@ test("formatUrlForDisplay (using removeUrlQueryParams)", async (t) => {
 	);
 });
 
+test("formatUrlForDisplay (using removeUrlQueryParams and requestId)", async (t) => {
+	let longUrl =
+		"https://example.com/207115/photos/243-0-1.jpg?Policy=FAKE_THING~2123ksjhd&Signature=FAKE_THING~2123ksjhd&Key-Pair-Id=FAKE_THING~2123ksjhd";
+	t.is(
+		new RemoteAssetCache(function() {}, ".cache", {
+			requestId: longUrl,
+			removeUrlQueryParams: true,
+			formatUrlForDisplay(url) {
+				return url;
+			},
+		}).displayUrl,
+		"function() {}",
+	);
+});
+
 test("Issue #6, URLs with HTTP Auth", async (t) => {
 	let url = "https://${USERNAME}:${PASSWORD}@api.pinboard.in/v1/posts/all?format=json&tag=read";
 	t.true(Util.isFullUrl(url));
@@ -225,9 +239,7 @@ test("supports promises that resolve", async (t) => {
 	let promise = Promise.resolve(expected);
 	let asset = new RemoteAssetCache(promise, undefined, {
 		type: "json",
-		formatUrlForDisplay() {
-			return "resolve-promise";
-		},
+		requestId: "resolve-promise",
 	});
 
 	let actual = await asset.fetch();
@@ -245,9 +257,7 @@ test("supports promises that reject", async (t) => {
 	let promise = Promise.reject(new Error(expected, { cause }));
 
 	let asset = new RemoteAssetCache(promise, undefined, {
-		formatUrlForDisplay() {
-			return "reject-promise";
-		},
+		requestId: "reject-promise",
 	});
 
 	try {
@@ -269,9 +279,7 @@ test("supports async functions that return data", async (t) => {
 	};
 	let asset = new RemoteAssetCache(asyncFunction, undefined, {
 		type: "json",
-		formatUrlForDisplay() {
-			return "async-return";
-		},
+		requestId: "async-return",
 	});
 
 	let actual = await asset.fetch();
@@ -290,14 +298,11 @@ test("supports async functions that throw", async (t) => {
 		throw new Error(expected, { cause });
 	};
 
-	let asset = new RemoteAssetCache(asyncFunction, undefined, {
-		formatUrlForDisplay() {
-			return "async-throws";
-		},
-	});
-
 	try {
-		await asset.fetch();
+		let ac = new RemoteAssetCache(asyncFunction, undefined, {
+			requestId: "async-throws",
+		});
+		await ac.fetch();
 	} catch (e) {
 		t.is(e.message, expected);
 		t.is(e.cause, cause);

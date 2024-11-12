@@ -48,15 +48,11 @@ test("Double Fetch async function (dry run)", async (t) => {
 
 let ac1 = Cache(fetch, {
 	dryRun: true,
-	formatUrlForDisplay() {
-		return "fetch-1";
-	},
+	requestId: "fetch-1",
 });
 let ac2 = Cache(fetch, {
 	dryRun: true,
-	formatUrlForDisplay() {
-		return "fetch-2";
-	},
+	requestId: "fetch-2",
 });
 
 	// Make sure we only fetch once!

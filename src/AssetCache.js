@@ -4,61 +4,32 @@ const path = require("path");
 const { create: FlatCacheCreate } = require("flat-cache");
 const { createHash } = require("crypto");
 
+const Sources = require("./Sources.js");
+
 const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
 	#customFilename;
 
-	static getCacheKey(source, options) {
-		// RemoteAssetCache sends this an Array, which skips this altogether
-		if (
-			(typeof source === "object" && typeof source.then === "function") ||
-			(typeof source === "function" && source.constructor.name === "AsyncFunction")
-		) {
-			if(typeof options.formatUrlForDisplay !== "function") {
-				throw new Error("When caching an arbitrary promise source, an options.formatUrlForDisplay() callback is required.");
-			}
-
-			return options.formatUrlForDisplay();
+	constructor(source, cacheDirectory, options = {}) {
+		if(!Sources.isValidSource(source)) {
+			throw Sources.getInvalidSourceError(source);
 		}
 
-		return source;
-	}
-
-	constructor(url, cacheDirectory, options = {}) {
-		let uniqueKey;
-		// RemoteAssetCache passes in an array
-		if(Array.isArray(uniqueKey)) {
-			uniqueKey = uniqueKey.join(",");
-		} else {
-			uniqueKey = AssetCache.getCacheKey(url, options);
-		}
+		let uniqueKey = AssetCache.getCacheKey(source, options);
 		this.uniqueKey = uniqueKey;
-
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
+
 		this.cacheDirectory = cacheDirectory || ".cache";
 		this.defaultDuration = "1d";
 		this.options = options;
 
 		// Compute the filename only once
 		if (typeof this.options.filenameFormat === "function") {
-			this.#customFilename = this.options.filenameFormat(uniqueKey, this.hash);
+			this.#customFilename = AssetCache.cleanFilename(this.options.filenameFormat(uniqueKey, this.hash));
 
-			if (typeof this.#customFilename !== "string") {
-				throw new Error(`The provided cacheFilename callback function did not return a string.`);
-			}
-
-			if (typeof this.#customFilename.length === 0) {
-				throw new Error(`The provided cacheFilename callback function returned an empty string.`);
-			}
-
-			// Ensure no illegal characters are present (Windows or Linux: forward/backslash, chevrons, colon, double-quote, pipe, question mark, asterisk)
-			if (this.#customFilename.match(/([\/\\<>:"|?*]+?)/)) {
-				const sanitizedFilename = this.#customFilename.replace(/[\/\\<>:"|?*]+/g, "");
-				console.warn(
-					`[AssetCache] Some illegal characters were removed from the cache filename: ${this.#customFilename} will be cached as ${sanitizedFilename}.`,
-				);
-				this.#customFilename = sanitizedFilename;
+			if (typeof this.#customFilename !== "string" || this.#customFilename.length === 0) {
+				throw new Error(`The provided filenameFormat callback function needs to return valid filename characters.`);
 			}
 		}
 	}
@@ -69,6 +40,40 @@ class AssetCache {
 		} else {
 			debug(message);
 		}
+	}
+
+	static cleanFilename(filename) {
+		// Ensure no illegal characters are present (Windows or Linux: forward/backslash, chevrons, colon, double-quote, pipe, question mark, asterisk)
+		if (filename.match(/([\/\\<>:"|?*]+?)/)) {
+			let sanitizedFilename = filename.replace(/[\/\\<>:"|?*]+/g, "");
+			debug(
+				`[@11ty/eleventy-fetch] Some illegal characters were removed from the cache filename: ${filename} will be cached as ${sanitizedFilename}.`,
+			);
+			return sanitizedFilename;
+		}
+
+		return filename;
+	}
+
+	static getCacheKey(source, options) {
+		// RemoteAssetCache passes in a string here, which skips this check (requestId is already used upstream)
+		if (Sources.isValidComplexSource(source)) {
+			if(options.requestId) {
+				return options.requestId;
+			}
+
+			if(typeof source.toString === "function") {
+				// 	return source.toString();
+				let toStr = source.toString();
+				if(toStr !== "function() {}" && toStr !== "[object Object]") {
+					return toStr;
+				}
+			}
+
+			throw Sources.getInvalidSourceError(source);
+		}
+
+		return source;
 	}
 
 	// Defult hashLength also set in global options, duplicated here for tests

@@ -62,13 +62,43 @@ test("Cache path should handle slashes without creating directories, issue #14",
 	t.is(cachePath, "/tmp/.cache/eleventy-fetch-135797dbf5ab1187e5003c49162602");
 });
 
-test("Uses formatUrlForDisplay when caching a promise", async (t) => {
-	let promise = Promise.resolve();
-	let displayUrl = "mock-display-url";
-	let asset = new AssetCache(promise, ".customcache", {
-		formatUrlForDisplay() {
-			return displayUrl;
-		},
+test("Uses `requestId` property when caching a promise", async (t) => {
+	let asset = new AssetCache(Promise.resolve(), ".customcache", {
+		requestId: "mock-display-url-2",
+	});
+	let cachePath = normalizePath(asset.cachePath);
+	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
+
+	await asset.save({ name: "Sophia Smith" }, "json");
+
+	t.truthy(fs.existsSync(jsonCachePath));
+
+	await asset.destroy();
+
+	t.falsy(fs.existsSync(cachePath));
+	t.falsy(fs.existsSync(jsonCachePath));
+});
+
+test("Uses `requestId` property when caching a function", async (t) => {
+	let asset = new AssetCache(function() {}, ".cache", {
+		requestId: "mock-function",
+	});
+	let cachePath = normalizePath(asset.cachePath);
+	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
+
+	await asset.save({ name: "Sophia Smith" }, "json");
+
+	t.truthy(fs.existsSync(jsonCachePath));
+
+	await asset.destroy();
+
+	t.falsy(fs.existsSync(cachePath));
+	t.falsy(fs.existsSync(jsonCachePath));
+});
+
+test("Uses `requestId` property when caching an async function", async (t) => {
+	let asset = new AssetCache(async function() {}, ".cache", {
+		requestId: "mock-async-function",
 	});
 	let cachePath = normalizePath(asset.cachePath);
 	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
