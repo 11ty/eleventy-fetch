@@ -106,11 +106,12 @@ test("Fetching!", async (t) => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
 	let ac = new RemoteAssetCache(pngUrl);
 	let buffer = await ac.fetch();
-	t.is(Buffer.isBuffer(buffer), true);
-
 	try {
 		await ac.destroy();
 	} catch (e) {}
+
+	t.is(ac.fetchCount, 1);
+	t.is(Buffer.isBuffer(buffer), true);
 });
 
 test("Fetching (dry run)!", async (t) => {
@@ -120,6 +121,7 @@ test("Fetching (dry run)!", async (t) => {
 	});
 	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
+	t.is(ac.fetchCount, 1);
 	t.false(ac.hasCacheFiles());
 });
 
@@ -127,11 +129,11 @@ test("Fetching pass in URL", async (t) => {
 	let pngUrl = new URL("https://www.zachleat.com/img/avatar-2017-big.png");
 	let ac = new RemoteAssetCache(pngUrl);
 	let buffer = await ac.fetch();
-	t.is(Buffer.isBuffer(buffer), true);
-
 	try {
 		await ac.destroy();
 	} catch (e) {}
+
+	t.is(Buffer.isBuffer(buffer), true);
 });
 
 test("Fetching pass non-stringable", async (t) => {
@@ -157,11 +159,11 @@ test("Fetching pass class with toString()", async (t) => {
 
 	let ac = new RemoteAssetCache(new B());
 	let buffer = await ac.fetch();
-	t.is(Buffer.isBuffer(buffer), true);
-
 	try {
 		await ac.destroy();
 	} catch (e) {}
+
+	t.is(Buffer.isBuffer(buffer), true);
 });
 
 test("formatUrlForDisplay (manual query param removal)", async (t) => {
@@ -227,11 +229,11 @@ test("Error with `cause`", async (t) => {
 			`Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`,
 		);
 		t.truthy(e.cause);
+	} finally {
+		try {
+			await asset.destroy();
+		} catch (e) {}
 	}
-
-	try {
-		await asset.destroy();
-	} catch (e) {}
 });
 
 test("supports promises that resolve", async (t) => {
@@ -243,12 +245,12 @@ test("supports promises that resolve", async (t) => {
 	});
 
 	let actual = await asset.fetch();
-
-	t.deepEqual(actual, expected);
-
 	try {
 		await asset.destroy();
 	} catch (e) {}
+
+	t.deepEqual(actual, expected);
+
 });
 
 test("supports promises that reject", async (t) => {
@@ -265,11 +267,11 @@ test("supports promises that reject", async (t) => {
 	} catch (e) {
 		t.is(e.message, expected);
 		t.is(e.cause, cause);
+	} finally {
+		try {
+			await asset.destroy();
+		} catch (e) {}
 	}
-
-	try {
-		await asset.destroy();
-	} catch (e) {}
 });
 
 test("supports async functions that return data", async (t) => {
@@ -283,12 +285,12 @@ test("supports async functions that return data", async (t) => {
 	});
 
 	let actual = await asset.fetch();
-
-	t.deepEqual(actual, expected);
-
 	try {
 		await asset.destroy();
 	} catch (e) {}
+
+	t.deepEqual(actual, expected);
+
 });
 
 test("supports async functions that throw", async (t) => {
@@ -306,11 +308,13 @@ test("supports async functions that throw", async (t) => {
 	} catch (e) {
 		t.is(e.message, expected);
 		t.is(e.cause, cause);
+	} finally {
+		try {
+			await asset.destroy();
+		} catch (e) {}
 	}
 
-	try {
-		await asset.destroy();
-	} catch (e) {}
+
 });
 
 test("type: xml", async (t) => {
@@ -319,11 +323,11 @@ test("type: xml", async (t) => {
 		type: "xml"
 	});
 	let xml = await ac.fetch();
-	t.true(xml.length > 50)
-
 	try {
 		await ac.destroy();
 	} catch (e) {}
+
+	t.true(xml.length > 50)
 });
 
 test("type: parsed-xml", async (t) => {
@@ -332,9 +336,28 @@ test("type: parsed-xml", async (t) => {
 		type: "parsed-xml"
 	});
 	let xml = await ac.fetch();
-	t.is(xml.children.length, 1)
-
 	try {
 		await ac.destroy();
 	} catch (e) {}
+
+	t.is(xml.children.length, 1)
+});
+
+test("raw: true", async (t) => {
+	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
+	let ac = new RemoteAssetCache(feedUrl, ".cache", {
+		type: "xml",
+		returnType: "response",
+	});
+	let response = await ac.fetch();
+	try {
+		await ac.destroy();
+	} catch (e) {}
+
+	t.is(ac.fetchCount, 1);
+	t.is(response.url, feedUrl);
+	t.is(response.status, 200);
+	t.truthy(response.headers.server);
+	t.truthy(response.headers['last-modified']);
+	t.truthy(response.body);
 });

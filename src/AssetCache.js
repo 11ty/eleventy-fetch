@@ -1,5 +1,4 @@
-const fs = require("fs");
-const fsp = fs.promises; // Node 10+
+const fs = require("graceful-fs");
 const path = require("path");
 const { create: FlatCacheCreate } = require("flat-cache");
 const { createHash } = require("crypto");
@@ -174,7 +173,7 @@ class AssetCache {
 	}
 
 	getDurationMs(duration = "0s") {
-		let durationUnits = duration.substr(-1);
+		let durationUnits = duration.slice(-1);
 		let durationMultiplier;
 		if (durationUnits === "s") {
 			durationMultiplier = 1;
@@ -190,7 +189,7 @@ class AssetCache {
 			durationMultiplier = 60 * 60 * 24 * 365;
 		}
 
-		let durationValue = parseInt(duration.substr(0, duration.length - 1), 10);
+		let durationValue = parseInt(duration.slice(0, duration.length - 1), 10);
 		return durationValue * durationMultiplier * 1000;
 	}
 
@@ -208,29 +207,26 @@ class AssetCache {
 		return this._dirEnsured;
 	}
 
-	async ensureDir() {
-		if (this._dirEnsured) {
+	ensureDir() {
+		if (this.options.dryRun || this._dirEnsured) {
 			return;
 		}
 
-		// make cacheDirectory if it does not exist.
-		return fsp
-			.mkdir(this.cacheDirectory, {
-				recursive: true,
-			})
-			.then(() => {
-				this._dirEnsured = true;
-			});
+		this._dirEnsured = true;
+
+		fs.mkdirSync(this.cacheDirectory, {
+			recursive: true,
+		});
 	}
 
-	async save(contents, type = "buffer") {
+	async save(contents, type = "buffer", metadata = {}) {
 		if (this.options.dryRun) {
 			debug("An attempt was made to save to the file system with `dryRun: true`. Skipping.");
 			return;
 		}
 
 		if(!this.isDirEnsured) {
-			await this.ensureDir();
+			this.ensureDir();
 		}
 
 		if (type === "json" || type === "parsed-xml") {
@@ -240,13 +236,14 @@ class AssetCache {
 		let contentPath = this.getCachedContentsPath(type);
 
 		// the contents must exist before the cache metadata are saved below
-		await fsp.writeFile(contentPath, contents);
+		fs.writeFileSync(contentPath, contents);
 
 		debug(`Writing ${contentPath}`);
 
 		this.cache.set(this.hash, {
 			cachedAt: Date.now(),
 			type: type,
+			metadata,
 		});
 
 		this.cache.save();
@@ -260,7 +257,7 @@ class AssetCache {
 			return require(contentPath);
 		}
 
-		return fsp.readFile(contentPath, type !== "buffer" ? "utf8" : null);
+		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
 	}
 
 	_backwardsCompatibilityGetCachedValue(type) {
@@ -280,6 +277,13 @@ class AssetCache {
 		// backwards compat with old caches
 		if (this.cachedObject.contents) {
 			return this._backwardsCompatibilityGetCachedValue(type);
+		}
+
+		if(this.options.returnType === "response") {
+			return {
+				...this.cachedObject.metadata?.response,
+				body: await this.getCachedContents(type),
+			}
 		}
 
 		// promise
@@ -353,7 +357,7 @@ class AssetCache {
 
 		await Promise.all(paths.map(path => {
 			if (fs.existsSync(path)) {
-				return fsp.unlink(path);
+				return fs.unlinkSync(path);
 			}
 		}))
 	}

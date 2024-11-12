@@ -12,6 +12,7 @@ class RemoteAssetCache extends AssetCache {
 		this.source = source;
 		this.options = options;
 		this.displayUrl = RemoteAssetCache.convertUrlToString(source, options);
+		this.fetchCount = 0;
 	}
 
 	static getRequestId(source, options) {
@@ -108,6 +109,7 @@ class RemoteAssetCache extends AssetCache {
 			this.log(`${isDryRun ? "Fetching" : "Cache miss for"} ${this.displayUrl}`);
 
 			let body;
+			let metadata = {};
 			let type = optionsOverride.type || this.options.type;
 			if (typeof this.source === "object" && typeof this.source.then === "function") {
 				body = await this.source;
@@ -120,6 +122,8 @@ class RemoteAssetCache extends AssetCache {
 					throw Sources.getInvalidSourceError(this.source);
 				}
 
+				this.fetchCount++;
+
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
 				let response = await fetch(this.source, fetchOptions);
 				if (!response.ok) {
@@ -129,11 +133,26 @@ class RemoteAssetCache extends AssetCache {
 					);
 				}
 
+				metadata.response = {
+					url: response.url,
+					status: response.status,
+					headers:  Object.fromEntries(response.headers.entries()),
+				};
+
 				body = await this.getResponseValue(response, type);
 			}
+
 			if (!isDryRun) {
-				await super.save(body, type);
+				await super.save(body, type, metadata);
 			}
+
+			if(this.options.returnType === "response") {
+				return {
+					...metadata.response,
+					body
+				}
+			}
+
 			return body;
 		} catch (e) {
 			if (this.cachedObject) {
