@@ -15,7 +15,7 @@ class RemoteAssetCache extends AssetCache {
 		this.fetchCount = 0;
 	}
 
-	static getRequestId(source, options) {
+	static getRequestId(source, options = {}) {
 		if (Sources.isValidComplexSource(source)) {
 			return this.getCacheKey(source, options);
 		}

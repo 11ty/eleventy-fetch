@@ -1,6 +1,21 @@
 const test = require("ava");
 const Cache = require("../");
+const queue = Cache.queue;
 const RemoteAssetCache = require("../src/RemoteAssetCache");
+
+test("Queue without options", async (t) => {
+	let example = "https://example.com/";
+	let req = await queue(example, () => {
+		let asset = new RemoteAssetCache(example);
+		return asset.fetch();
+	});
+
+	t.truthy(Buffer.isBuffer(req))
+
+	try {
+		await req.destroy();
+	} catch (e) {}
+});
 
 test("Double Fetch", async (t) => {
 	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
@@ -79,3 +94,4 @@ test("Double Fetch 404 errors should only fetch once", async (t) => {
 	await t.throwsAsync(async () => await ac1);
 	await t.throwsAsync(async () => await ac2);
 });
+
