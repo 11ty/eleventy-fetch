@@ -1,5 +1,4 @@
 const test = require("ava");
-const fs = require("fs");
 const Cache = require("../");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
 
@@ -46,16 +45,16 @@ test("Double Fetch async function (dry run)", async (t) => {
 		return Promise.resolve(expected);
 	};
 
-let ac1 = Cache(fetch, {
-	dryRun: true,
-	requestId: "fetch-1",
-});
-let ac2 = Cache(fetch, {
-	dryRun: true,
-	requestId: "fetch-2",
-});
+	let ac1 = Cache(fetch, {
+		dryRun: true,
+		requestId: "fetch-1",
+	});
+	let ac2 = Cache(fetch, {
+		dryRun: true,
+		requestId: "fetch-2",
+	});
 
-	// Make sure we only fetch once!
+	// two distinct fetches
 	t.not(ac1, ac2);
 
 	let result1 = await ac1;
@@ -64,4 +63,19 @@ let ac2 = Cache(fetch, {
 	t.deepEqual(result1, result2);
 	t.deepEqual(result1, expected);
 	t.deepEqual(result2, expected);
+});
+
+test("Double Fetch 404 errors should only fetch once", async (t) => {
+	let ac1 = Cache("https://httpstat.us/404", {
+		dryRun: true,
+	});
+	let ac2 = Cache("https://httpstat.us/404", {
+		dryRun: true,
+	});
+
+	// Make sure we only fetch once!
+	t.is(ac1, ac2);
+
+	await t.throwsAsync(async () => await ac1);
+	await t.throwsAsync(async () => await ac2);
 });

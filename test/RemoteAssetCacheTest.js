@@ -343,7 +343,7 @@ test("type: parsed-xml", async (t) => {
 	t.is(xml.children.length, 1)
 });
 
-test("raw: true, cache miss", async (t) => {
+test("returnType: response, cache miss", async (t) => {
 	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
 	let ac = new RemoteAssetCache(feedUrl, ".cache", {
 		type: "xml",
@@ -365,7 +365,7 @@ test("raw: true, cache miss", async (t) => {
 });
 
 
-test("raw: true, cache hit", async (t) => {
+test("returnType: response, cache hit", async (t) => {
 	let feedUrl = "https://www.11ty.dev/blog/feed.xml";
 	let ac = new RemoteAssetCache(feedUrl, ".cache", {
 		type: "xml",
@@ -384,3 +384,4 @@ test("raw: true, cache hit", async (t) => {
 
 	t.is(response.cache, "hit");
 });
+
