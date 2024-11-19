@@ -95,3 +95,25 @@ test("Double Fetch 404 errors should only fetch once", async (t) => {
 	await t.throwsAsync(async () => await ac2);
 });
 
+test("Docs example https://www.11ty.dev/docs/plugins/fetch/#manually-store-your-own-data-in-the-cache", async (t) => {
+	t.plan(2);
+
+	async function fn() {
+		t.true(true);
+		return new Promise(resolve => {
+			setTimeout(() => {
+				resolve({ followerCount: 1000 })
+			});
+		});
+	}
+
+	let fakeFollowers = Cache(fn, {
+		type: "json",
+		dryRun: true,
+		requestId: "zachleat_twitter_followers"
+	});
+
+	t.deepEqual(await fakeFollowers, {
+		followerCount: 1000
+	});
+});
