@@ -8,9 +8,14 @@ const Sources = require("./Sources.js");
 const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
+	#source;
+	#hash;
 	#customFilename;
 	#hasSaved = false;
+	#cache;
+	#cacheDirectory;
 	#cacheLocationDirty = false;
+	#dirEnsured = false;
 
 	constructor(source, cacheDirectory, options = {}) {
 		if(!Sources.isValidSource(source)) {
@@ -107,35 +112,35 @@ class AssetCache {
 	}
 
 	get source() {
-		return this._source;
+		return this.#source;
 	}
 
 	set source(source) {
-		this._source = source;
+		this.#source = source;
 	}
 
 	get hash() {
-		return this._hash;
+		return this.#hash;
 	}
 
 	set hash(value) {
-		if (value !== this._hash) {
+		if (value !== this.#hash) {
 			this.#cacheLocationDirty = true;
 		}
 
-		this._hash = value;
+		this.#hash = value;
 	}
 
 	get cacheDirectory() {
-		return this._cacheDirectory;
+		return this.#cacheDirectory;
 	}
 
 	set cacheDirectory(dir) {
-		if (dir !== this._cacheDirectory) {
+		if (dir !== this.#cacheDirectory) {
 			this.#cacheLocationDirty = true;
 		}
 
-		this._cacheDirectory = dir;
+		this.#cacheDirectory = dir;
 	}
 
 	get cacheFilename() {
@@ -170,16 +175,16 @@ class AssetCache {
 	}
 
 	get cache() {
-		if (!this._cache || this.#cacheLocationDirty) {
+		if (!this.#cache || this.#cacheLocationDirty) {
 			let cache = FlatCacheCreate({
 				cacheId: this.cacheFilename,
 				cacheDir: this.rootDir,
 			});
 
-			this._cache = cache;
+			this.#cache = cache;
 			this.#cacheLocationDirty = false;
 		}
-		return this._cache;
+		return this.#cache;
 	}
 
 	getDurationMs(duration = "0s") {
@@ -214,15 +219,15 @@ class AssetCache {
 	}
 
 	get isDirEnsured() {
-		return this._dirEnsured;
+		return this.#dirEnsured;
 	}
 
 	ensureDir() {
-		if (this.options.dryRun || this._dirEnsured) {
+		if (this.options.dryRun || this.#dirEnsured) {
 			return;
 		}
 
-		this._dirEnsured = true;
+		this.#dirEnsured = true;
 
 		fs.mkdirSync(this.cacheDirectory, {
 			recursive: true,
