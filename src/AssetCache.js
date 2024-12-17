@@ -9,6 +9,8 @@ const debug = require("debug")("Eleventy:Fetch");
 
 class AssetCache {
 	#customFilename;
+	#hasSaved = false;
+	#cacheLocationDirty = false;
 
 	constructor(source, cacheDirectory, options = {}) {
 		if(!Sources.isValidSource(source)) {
@@ -30,6 +32,14 @@ class AssetCache {
 			if (typeof this.#customFilename !== "string" || this.#customFilename.length === 0) {
 				throw new Error(`The provided filenameFormat callback function needs to return valid filename characters.`);
 			}
+		}
+	}
+
+	setInitialCacheTimestamp(timestamp) {
+		this.initialCacheTimestamp = timestamp;
+
+		if(this.#hasSaved) {
+			throw new Error("`setInitialCacheTimestamp` method must be called before the object is saved.");
 		}
 	}
 
@@ -110,7 +120,7 @@ class AssetCache {
 
 	set hash(value) {
 		if (value !== this._hash) {
-			this._cacheLocationDirty = true;
+			this.#cacheLocationDirty = true;
 		}
 
 		this._hash = value;
@@ -122,7 +132,7 @@ class AssetCache {
 
 	set cacheDirectory(dir) {
 		if (dir !== this._cacheDirectory) {
-			this._cacheLocationDirty = true;
+			this.#cacheLocationDirty = true;
 		}
 
 		this._cacheDirectory = dir;
@@ -160,14 +170,14 @@ class AssetCache {
 	}
 
 	get cache() {
-		if (!this._cache || this._cacheLocationDirty) {
+		if (!this._cache || this.#cacheLocationDirty) {
 			let cache = FlatCacheCreate({
 				cacheId: this.cacheFilename,
 				cacheDir: this.rootDir,
 			});
 
 			this._cache = cache;
-			this._cacheLocationDirty = false;
+			this.#cacheLocationDirty = false;
 		}
 		return this._cache;
 	}
@@ -222,7 +232,14 @@ class AssetCache {
 	async save(contents, type = "buffer", metadata = {}) {
 		if (this.options.dryRun) {
 			debug("An attempt was made to save to the file system with `dryRun: true`. Skipping.");
+
+			// Errors are still expected from this
+			this.#hasSaved = true;
 			return;
+		}
+
+		if(!contents) {
+			throw new Error("save(contents) expects contents (it was falsy)");
 		}
 
 		if(!this.isDirEnsured) {
@@ -241,12 +258,13 @@ class AssetCache {
 		debug(`Writing ${contentPath}`);
 
 		this.cache.set(this.hash, {
-			cachedAt: Date.now(),
+			cachedAt: this.initialCacheTimestamp || Date.now(),
 			type: type,
 			metadata,
 		});
 
 		this.cache.save();
+		this.#hasSaved = true;
 	}
 
 	async getCachedContents(type) {
@@ -289,6 +307,10 @@ class AssetCache {
 
 		// promise
 		return this.getCachedContents(type);
+	}
+
+	getCachedTimestamp() {
+		return this.cachedObject?.cachedAt || this.initialCacheTimestamp;
 	}
 
 	isCacheValid(duration = this.defaultDuration) {

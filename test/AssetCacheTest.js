@@ -137,3 +137,30 @@ test("Uses filenameFormat", async (t) => {
 	t.falsy(fs.existsSync(cachePath));
 	t.falsy(fs.existsSync(jsonCachePath));
 });
+
+test("setInitialCacheTimestamp method (used by Eleventy Image to establish a consistent cached file name in synchronous contexts)", async (t) => {
+	let cache = new AssetCache("this_is_a_test", ".cache", {
+		dryRun: true
+	});
+	let timestamp = Date.now();
+	cache.setInitialCacheTimestamp(timestamp);
+
+	await cache.save("test");
+
+	t.is(cache.getCachedTimestamp(), timestamp);
+});
+
+test("setInitialCacheTimestamp method after save throws error", async (t) => {
+	let cache = new AssetCache("this_is_a_test", ".cache", {
+		dryRun: true
+	});
+	let timestamp = Date.now();
+
+	await cache.save("test");
+
+	t.throws(() => {
+		cache.setInitialCacheTimestamp(timestamp);
+	}, {
+		message: "`setInitialCacheTimestamp` method must be called before the object is saved."
+	})
+});
