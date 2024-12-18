@@ -164,7 +164,7 @@ test("setInitialCacheTimestamp method after save is ignored", async (t) => {
 	t.not(cache.getCachedTimestamp(), timestamp);
 });
 
-test("setInitialCacheTimestamp method after second save is used", async (t) => {
+test("setInitialCacheTimestamp method before a second save is used", async (t) => {
 	let cache = new AssetCache("this_is_a_test3", ".cache", {
 		dryRun: true
 	});
