@@ -142,7 +142,7 @@ test("setInitialCacheTimestamp method (used by Eleventy Image to establish a con
 	let cache = new AssetCache("this_is_a_test", ".cache", {
 		dryRun: true
 	});
-	let timestamp = Date.now();
+	let timestamp = (new Date(2024,1,1)).getTime();
 	cache.setInitialCacheTimestamp(timestamp);
 
 	await cache.save("test");
@@ -150,17 +150,32 @@ test("setInitialCacheTimestamp method (used by Eleventy Image to establish a con
 	t.is(cache.getCachedTimestamp(), timestamp);
 });
 
-test("setInitialCacheTimestamp method after save throws error", async (t) => {
-	let cache = new AssetCache("this_is_a_test", ".cache", {
+test("setInitialCacheTimestamp method after save is ignored", async (t) => {
+	let cache = new AssetCache("this_is_a_test2", ".cache", {
 		dryRun: true
 	});
-	let timestamp = Date.now();
+
+	let timestamp = (new Date(2024,1,1)).getTime();
 
 	await cache.save("test");
 
-	t.throws(() => {
-		cache.setInitialCacheTimestamp(timestamp);
-	}, {
-		message: "`setInitialCacheTimestamp` method must be called before the object is saved."
-	})
+	cache.setInitialCacheTimestamp(timestamp);
+
+	t.not(cache.getCachedTimestamp(), timestamp);
+});
+
+test("setInitialCacheTimestamp method after second save is used", async (t) => {
+	let cache = new AssetCache("this_is_a_test3", ".cache", {
+		dryRun: true
+	});
+
+	let timestamp = (new Date(2024,1,1)).getTime();
+
+	await cache.save("test");
+
+	cache.setInitialCacheTimestamp(timestamp);
+
+	await cache.save("test");
+
+	t.is(cache.getCachedTimestamp(), timestamp);
 });

@@ -11,7 +11,6 @@ class AssetCache {
 	#source;
 	#hash;
 	#customFilename;
-	#hasSaved = false;
 	#cache;
 	#cacheDirectory;
 	#cacheLocationDirty = false;
@@ -42,10 +41,6 @@ class AssetCache {
 
 	setInitialCacheTimestamp(timestamp) {
 		this.initialCacheTimestamp = timestamp;
-
-		if(this.#hasSaved) {
-			throw new Error("`setInitialCacheTimestamp` method must be called before the object is saved.");
-		}
 	}
 
 	log(message) {
@@ -235,21 +230,11 @@ class AssetCache {
 	}
 
 	async save(contents, type = "buffer", metadata = {}) {
-		if (this.options.dryRun) {
-			debug("An attempt was made to save to the file system with `dryRun: true`. Skipping.");
-
-			// Errors are still expected from this
-			this.#hasSaved = true;
-			return;
-		}
-
 		if(!contents) {
-			throw new Error("save(contents) expects contents (it was falsy)");
+			throw new Error("save(contents) expects contents (was falsy)");
 		}
 
-		if(!this.isDirEnsured) {
-			this.ensureDir();
-		}
+		this.ensureDir();
 
 		if (type === "json" || type === "parsed-xml") {
 			contents = JSON.stringify(contents);
@@ -258,9 +243,12 @@ class AssetCache {
 		let contentPath = this.getCachedContentsPath(type);
 
 		// the contents must exist before the cache metadata are saved below
-		fs.writeFileSync(contentPath, contents);
-
-		debug(`Writing ${contentPath}`);
+		if(!this.options.dryRun) {
+			fs.writeFileSync(contentPath, contents);
+			debug(`Writing ${contentPath}`);
+		} else {
+			debug(`Dry run writing ${contentPath}`);
+		}
 
 		this.cache.set(this.hash, {
 			cachedAt: this.initialCacheTimestamp || Date.now(),
@@ -268,8 +256,9 @@ class AssetCache {
 			metadata,
 		});
 
-		this.cache.save();
-		this.#hasSaved = true;
+		if(!this.options.dryRun) {
+			this.cache.save();
+		}
 	}
 
 	async getCachedContents(type) {
