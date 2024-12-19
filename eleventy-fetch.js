@@ -4,6 +4,7 @@ const debug = require("debug")("Eleventy:Fetch");
 const Sources = require("./src/Sources.js");
 const RemoteAssetCache = require("./src/RemoteAssetCache.js");
 const AssetCache = require("./src/AssetCache.js");
+const DirectoryManager = require("./src/DirectoryManager.js");
 
 const globalOptions = {
 	type: "buffer",
@@ -36,6 +37,8 @@ queue.on("active", () => {
 
 let instCache = {};
 
+let directoryManager = new DirectoryManager();
+
 function createRemoteAssetCache(source, rawOptions = {}) {
 	if (!Sources.isFullUrl(source) && !Sources.isValidSource(source)) {
 		return Promise.reject(new Error("Invalid source. Received: " + source));
@@ -53,6 +56,7 @@ function createRemoteAssetCache(source, rawOptions = {}) {
 
 	let inst = new RemoteAssetCache(source, options.directory, options);
 	inst.setQueue(queue);
+	inst.setDirectoryManager(directoryManager);
 
 	instCache[sourceKey] = inst;
 

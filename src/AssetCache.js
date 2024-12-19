@@ -5,6 +5,7 @@ const { createHash } = require("crypto");
 const debugUtil = require("debug");
 
 const Sources = require("./Sources.js");
+const DirectoryManager = require("./DirectoryManager.js");
 
 const debug = debugUtil("Eleventy:Fetch");
 const debugAssets = debugUtil("Eleventy:Assets");
@@ -16,7 +17,7 @@ class AssetCache {
 	#cache;
 	#cacheDirectory;
 	#cacheLocationDirty = false;
-	#dirEnsured = false;
+	#directoryManager;
 	#rawContents = {}
 
 	constructor(source, cacheDirectory, options = {}) {
@@ -214,20 +215,21 @@ class AssetCache {
 		return `${this.cachePath}.${type}`;
 	}
 
-	get isDirEnsured() {
-		return this.#dirEnsured;
+	setDirectoryManager(manager) {
+		this.#directoryManager = manager;
 	}
 
 	ensureDir() {
-		if (this.options.dryRun || this.#dirEnsured) {
+		if (this.options.dryRun) {
 			return;
 		}
 
-		this.#dirEnsured = true;
+		if(!this.#directoryManager) {
+			// standalone fallback (for tests)
+			this.#directoryManager = new DirectoryManager();
+		}
 
-		fs.mkdirSync(this.cacheDirectory, {
-			recursive: true,
-		});
+		this.#directoryManager.create(this.cacheDirectory);
 	}
 
 	async save(contents, type = "buffer", metadata = {}) {
@@ -270,12 +272,16 @@ class AssetCache {
 
 		debug(`Fetching from cache ${contentPath}`);
 
+		if(this.source) {
+			debugAssets("[11ty/eleventy-fetch] Reading via %o", this.source);
+		} else {
+			debugAssets("[11ty/eleventy-fetch] Reading %o", contentPath);
+		}
+
 		if (type === "json" || type === "parsed-xml") {
-			debugAssets("[11ty/eleventy-fetch] Reading require('%o')", contentPath);
 			return require(contentPath);
 		}
 
-		debugAssets("[11ty/eleventy-fetch] Reading %o", contentPath);
 		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
 	}
 
