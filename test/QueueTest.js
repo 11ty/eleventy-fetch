@@ -117,3 +117,104 @@ test("Docs example https://www.11ty.dev/docs/plugins/fetch/#manually-store-your-
 		followerCount: 1000
 	});
 });
+
+test("Raw Fetch using queue method", async (t) => {
+	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=1";
+	let ac1 = Fetch(pngUrl);
+	let ac2 = Fetch(pngUrl);
+
+	// Destroy to clear any existing cache
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+
+	// Make sure the instance is the same
+	t.is(ac1, ac2);
+
+	let result1 = await ac1.queue();
+	t.false(ac1.wasLastFetchCacheHit())
+
+	let result2 = await ac1.queue();
+	// reuses the same fetch
+	t.false(ac1.wasLastFetchCacheHit())
+
+	t.is(result1, result2);
+
+	// file is now accessible
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+});
+
+
+test("Raw Fetch using fetch method", async (t) => {
+	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=2";
+	let ac1 = Fetch(pngUrl);
+	let ac2 = Fetch(pngUrl);
+
+	// Destroy to clear any existing cache
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+
+	// Make sure the instance is the same
+	t.is(ac1, ac2);
+
+	let result1 = await ac1.fetch();
+	t.false(ac1.wasLastFetchCacheHit())
+
+	let result2 = await ac1.fetch();
+	t.true(ac1.wasLastFetchCacheHit())
+
+	t.is(result1, result2);
+
+	// file is now accessible
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+});
+
+test("Raw Fetch using fetch method (check parallel fetch promise reuse)", async (t) => {
+	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=3";
+	let ac1 = Fetch(pngUrl);
+	let ac2 = Fetch(pngUrl);
+
+	// Destroy to clear any existing cache
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+
+	// Make sure the instance is the same
+	t.is(ac1, ac2);
+
+	let fetch1 = ac1.fetch();
+	let fetch2 = ac1.fetch();
+	t.is(fetch1, fetch2);
+
+	t.is(await fetch1, await fetch2);
+
+	t.false(ac1.wasLastFetchCacheHit())
+
+	// file is now accessible
+	try {
+		await ac1.destroy();
+	} catch (e) {}
+	try {
+		await ac2.destroy();
+	} catch (e) {}
+});

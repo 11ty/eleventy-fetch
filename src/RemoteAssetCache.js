@@ -7,6 +7,7 @@ const assetDebug = require("debug")("Eleventy:Assets");
 class RemoteAssetCache extends AssetCache {
 	#queue;
 	#queuePromise;
+	#fetchPromise;
 	#lastFetchType;
 
 	constructor(source, cacheDirectory, options = {}) {
@@ -126,11 +127,11 @@ class RemoteAssetCache extends AssetCache {
 
 	// if last fetch was a cache hit (no fetch occurred) or a cache miss (fetch did occur)
 	// used by Eleventy Image in disk cache checks.
-	wasLastFetchHit() {
+	wasLastFetchCacheHit() {
 		return this.#lastFetchType === "hit";
 	}
 
-	async fetch(optionsOverride = {}) {
+	async #fetch(optionsOverride = {}) {
 		// Important: no disk writes when dryRun
 		// As of Fetch v4, reads are now allowed!
 		if (this.isCacheValid(optionsOverride.duration)) {
@@ -202,6 +203,19 @@ class RemoteAssetCache extends AssetCache {
 				return Promise.reject(e);
 			}
 		}
+	}
+
+	// async but not explicitly declared for promise equality checks
+	// returns a Promise
+	fetch(optionsOverride = {}) {
+		if(!this.#fetchPromise) {
+			// one at a time. clear when finished
+			this.#fetchPromise = this.#fetch(optionsOverride).finally(() => {
+				this.#fetchPromise = undefined;
+			});
+		}
+
+		return this.#fetchPromise;
 	}
 }
 module.exports = RemoteAssetCache;

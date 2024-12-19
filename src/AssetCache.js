@@ -5,7 +5,9 @@ const { createHash } = require("crypto");
 
 const Sources = require("./Sources.js");
 
-const debug = require("debug")("Eleventy:Fetch");
+const debugUtil = require("debug");
+const debug = debugUtil("Eleventy:Fetch");
+const debugAssets = debugUtil("Eleventy:Assets");
 
 class AssetCache {
 	#source;
@@ -15,6 +17,7 @@ class AssetCache {
 	#cacheDirectory;
 	#cacheLocationDirty = false;
 	#dirEnsured = false;
+	#rawContents = {}
 
 	constructor(source, cacheDirectory, options = {}) {
 		if(!Sources.isValidSource(source)) {
@@ -232,7 +235,20 @@ class AssetCache {
 			throw new Error("save(contents) expects contents (was falsy)");
 		}
 
+		this.cache.set(this.hash, {
+			cachedAt: Date.now(),
+			type: type,
+			metadata,
+		});
+
 		let contentPath = this.getCachedContentsPath(type);
+
+		if (type === "json" || type === "parsed-xml") {
+			contents = JSON.stringify(contents);
+		}
+
+		this.#rawContents[type] = contents;
+
 		if(this.options.dryRun) {
 			debug(`Dry run writing ${contentPath}`);
 			return;
@@ -240,24 +256,15 @@ class AssetCache {
 
 		this.ensureDir();
 
-		if (type === "json" || type === "parsed-xml") {
-			contents = JSON.stringify(contents);
-		}
-
+		debugAssets("Writing cache file to disk for %o", this.source)
 		// the contents must exist before the cache metadata are saved below
 		fs.writeFileSync(contentPath, contents);
 		debug(`Writing ${contentPath}`);
 
-		this.cache.set(this.hash, {
-			cachedAt: Date.now(),
-			type: type,
-			metadata,
-		});
-
 		this.cache.save();
 	}
 
-	async getCachedContents(type) {
+	async #getCachedContents(type) {
 		let contentPath = this.getCachedContentsPath(type);
 		debug(`Fetching from cache ${contentPath}`);
 
@@ -266,6 +273,15 @@ class AssetCache {
 		}
 
 		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
+	}
+
+	getCachedContents(type) {
+		if(!this.#rawContents[type]) {
+			this.#rawContents[type] = this.#getCachedContents(type);
+		}
+
+		// already saved on this instance in-memory
+		return this.#rawContents[type];
 	}
 
 	_backwardsCompatibilityGetCachedValue(type) {
@@ -341,16 +357,16 @@ class AssetCache {
 		return !this.isCacheValid(duration);
 	}
 
-	async fetch(options) {
-		if (this.isCacheValid(options.duration)) {
+	// This is only included for completenes—not on the docs.
+	async fetch(optionsOverride = {}) {
+		if (this.isCacheValid(optionsOverride.duration)) {
 			// promise
 			this.log(`Using cached version of: ${this.uniqueKey}`);
 			return this.getCachedValue();
 		}
 
 		this.log(`Saving ${this.uniqueKey} to ${this.cacheFilename}`);
-
-		await this.save(this.source, options.type);
+		await this.save(this.source, optionsOverride.type);
 
 		return this.source;
 	}
