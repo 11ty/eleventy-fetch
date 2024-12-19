@@ -267,12 +267,15 @@ class AssetCache {
 
 	async #getCachedContents(type) {
 		let contentPath = this.getCachedContentsPath(type);
+
 		debug(`Fetching from cache ${contentPath}`);
 
 		if (type === "json" || type === "parsed-xml") {
+			debugAssets("Reading from require('%o')", contentPath);
 			return require(contentPath);
 		}
 
+		debugAssets("Reading from: %o", contentPath);
 		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
 	}
 
