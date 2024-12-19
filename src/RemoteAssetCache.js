@@ -207,7 +207,7 @@ class RemoteAssetCache extends AssetCache {
 
 	// async but not explicitly declared for promise equality checks
 	// returns a Promise
-	fetch(optionsOverride = {}) {
+	async fetch(optionsOverride = {}) {
 		if(!this.#fetchPromise) {
 			// one at a time. clear when finished
 			this.#fetchPromise = this.#fetch(optionsOverride).finally(() => {

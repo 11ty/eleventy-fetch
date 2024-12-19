@@ -275,7 +275,7 @@ class AssetCache {
 		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
 	}
 
-	getCachedContents(type) {
+	async getCachedContents(type) {
 		if(!this.#rawContents[type]) {
 			this.#rawContents[type] = this.#getCachedContents(type);
 		}

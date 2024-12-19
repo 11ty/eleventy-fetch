@@ -202,11 +202,9 @@ test("Raw Fetch using fetch method (check parallel fetch promise reuse)", async 
 	// Make sure the instance is the same
 	t.is(ac1, ac2);
 
-	let fetch1 = ac1.fetch();
-	let fetch2 = ac1.fetch();
-	t.is(fetch1, fetch2);
+	let [result1, result2] = await Promise.all([ac1.fetch(), ac1.fetch()]);
 
-	t.is(await fetch1, await fetch2);
+	t.is(result1, result2);
 
 	t.false(ac1.wasLastFetchCacheHit())
 
