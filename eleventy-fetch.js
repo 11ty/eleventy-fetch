@@ -34,33 +34,34 @@ queue.on("active", () => {
 	debug(`Concurrency: ${queue.concurrency}, Size: ${queue.size}, Pending: ${queue.pending}`);
 });
 
-let inProgress = {};
+let instCache = {};
 
-function queueSave(source, queueCallback, options) {
+function createRemoteAssetCache(source, rawOptions = {}) {
+	if (!Sources.isFullUrl(source) && !Sources.isValidSource(source)) {
+		return Promise.reject(new Error("Invalid source. Received: " + source));
+	}
+
+	let options = Object.assign({}, globalOptions, rawOptions);
 	let sourceKey = RemoteAssetCache.getRequestId(source, options);
 	if(!sourceKey) {
 		return Promise.reject(Sources.getInvalidSourceError(source));
 	}
 
-	if (!inProgress[sourceKey]) {
-		inProgress[sourceKey] = queue.add(queueCallback).finally(() => {
-			delete inProgress[sourceKey];
-		});
+	if(instCache[sourceKey]) {
+		return instCache[sourceKey];
 	}
 
-	return inProgress[sourceKey];
+	let inst = new RemoteAssetCache(source, options.directory, options);
+	inst.setQueue(queue);
+
+	instCache[sourceKey] = inst;
+
+	return inst;
 }
 
 module.exports = function (source, options) {
-	if (!Sources.isFullUrl(source) && !Sources.isValidSource(source)) {
-		throw new Error("Caching an already local asset is not yet supported.");
-	}
-
-	let mergedOptions = Object.assign({}, globalOptions, options);
-	return queueSave(source, () => {
-		let asset = new RemoteAssetCache(source, mergedOptions.directory, mergedOptions);
-		return asset.fetch(mergedOptions);
-	}, mergedOptions);
+	let instance = createRemoteAssetCache(source, options);
+	return instance.queue();
 };
 
 Object.defineProperty(module.exports, "concurrency", {
@@ -72,7 +73,15 @@ Object.defineProperty(module.exports, "concurrency", {
 	},
 });
 
-module.exports.queue = queueSave;
+module.exports.Fetch = createRemoteAssetCache;
+
+// Deprecated API kept for backwards compat, instead: use default export directly.
+// Intentional: queueCallback is ignored here
+module.exports.queue = function(source, queueCallback, options) {
+	let instance = createRemoteAssetCache(source, options);
+	return instance.queue();
+};
+
 module.exports.Util = {
 	isFullUrl: Sources.isFullUrl,
 };

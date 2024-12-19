@@ -1,7 +1,6 @@
 const test = require("ava");
-const Cache = require("../");
-const queue = Cache.queue;
-const RemoteAssetCache = require("../src/RemoteAssetCache");
+const Cache = require("../eleventy-fetch.js");
+const { queue, Fetch } = Cache;
 
 test("Queue without options", async (t) => {
 	let example = "https://example.com/";
@@ -28,7 +27,7 @@ test("Double Fetch", async (t) => {
 	await ac1;
 	await ac2;
 
-	let forDestroyOnly = new RemoteAssetCache(pngUrl);
+	let forDestroyOnly = Fetch(pngUrl);
 	// file is now accessible
 	try {
 		await forDestroyOnly.destroy();
@@ -46,7 +45,8 @@ test("Double Fetch (dry run)", async (t) => {
 	await ac1;
 	await ac2;
 
-	let forTestOnly = new RemoteAssetCache(pngUrl, ".cache", {
+	let forTestOnly = Fetch(pngUrl, {
+		cacheDirectory: ".cache",
 		dryRun: true,
 	});
 	// file is now accessible

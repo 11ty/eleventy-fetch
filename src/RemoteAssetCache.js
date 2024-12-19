@@ -2,9 +2,13 @@ const { parseXml } = require('@rgrove/parse-xml');
 
 const Sources = require("./Sources.js");
 const AssetCache = require("./AssetCache.js");
-// const debug = require("debug")("Eleventy:Fetch");
+const assetDebug = require("debug")("Eleventy:Assets");
 
 class RemoteAssetCache extends AssetCache {
+	#queue;
+	#queuePromise;
+	#lastFetchType;
+
 	constructor(source, cacheDirectory, options = {}) {
 		let requestId = RemoteAssetCache.getRequestId(source, options);
 		super(requestId, cacheDirectory, options);
@@ -95,14 +99,47 @@ class RemoteAssetCache extends AssetCache {
 		return Buffer.from(await response.arrayBuffer());
 	}
 
+	setQueue(queue) {
+		this.#queue = queue;
+	}
+
+	// Returns raw Promise
+	queue() {
+		if(!this.#queue) {
+			throw new Error("Missing `#queue` instance.");
+		}
+
+		if(this.#queuePromise) {
+			return this.#queuePromise;
+		}
+
+		// optionsOverride not supported on fetch here for re-use
+		this.#queuePromise = this.#queue.add(() => this.fetch());
+
+		return this.#queuePromise;
+	}
+
+	isCacheValid(duration = undefined) {
+		// uses this.options.duration if not explicitly defined here
+		return super.isCacheValid(duration);
+	}
+
+	// if last fetch was a cache hit (no fetch occurred) or a cache miss (fetch did occur)
+	// used by Eleventy Image in disk cache checks.
+	wasLastFetchHit() {
+		return this.#lastFetchType === "hit";
+	}
+
 	async fetch(optionsOverride = {}) {
-		let duration = optionsOverride.duration || this.options.duration;
 		// Important: no disk writes when dryRun
 		// As of Fetch v4, reads are now allowed!
-		if (super.isCacheValid(duration)) {
+		if (this.isCacheValid(optionsOverride.duration)) {
 			this.log(`Cache hit for ${this.displayUrl}`);
+			this.#lastFetchType = "hit";
 			return super.getCachedValue();
 		}
+
+		this.#lastFetchType = "miss";
 
 		try {
 			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
@@ -124,6 +161,7 @@ class RemoteAssetCache extends AssetCache {
 
 				this.fetchCount++;
 
+				assetDebug("Fetching remote asset: %o", this.source);
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
 				let response = await fetch(this.source, fetchOptions);
 				if (!response.ok) {

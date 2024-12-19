@@ -26,8 +26,10 @@ class AssetCache {
 		this.hash = AssetCache.getHash(uniqueKey, options.hashLength);
 
 		this.cacheDirectory = cacheDirectory || ".cache";
-		this.defaultDuration = "1d";
 		this.options = options;
+
+		this.defaultDuration = "1d";
+		this.duration = options.duration || this.defaultDuration;
 
 		// Compute the filename only once
 		if (typeof this.options.filenameFormat === "function") {
@@ -37,10 +39,6 @@ class AssetCache {
 				throw new Error(`The provided filenameFormat callback function needs to return valid filename characters.`);
 			}
 		}
-	}
-
-	setInitialCacheTimestamp(timestamp) {
-		this.initialCacheTimestamp = timestamp;
 	}
 
 	log(message) {
@@ -234,31 +232,29 @@ class AssetCache {
 			throw new Error("save(contents) expects contents (was falsy)");
 		}
 
+		let contentPath = this.getCachedContentsPath(type);
+		if(this.options.dryRun) {
+			debug(`Dry run writing ${contentPath}`);
+			return;
+		}
+
 		this.ensureDir();
 
 		if (type === "json" || type === "parsed-xml") {
 			contents = JSON.stringify(contents);
 		}
 
-		let contentPath = this.getCachedContentsPath(type);
-
 		// the contents must exist before the cache metadata are saved below
-		if(!this.options.dryRun) {
-			fs.writeFileSync(contentPath, contents);
-			debug(`Writing ${contentPath}`);
-		} else {
-			debug(`Dry run writing ${contentPath}`);
-		}
+		fs.writeFileSync(contentPath, contents);
+		debug(`Writing ${contentPath}`);
 
 		this.cache.set(this.hash, {
-			cachedAt: this.initialCacheTimestamp || Date.now(),
+			cachedAt: Date.now(),
 			type: type,
 			metadata,
 		});
 
-		if(!this.options.dryRun) {
-			this.cache.save();
-		}
+		this.cache.save();
 	}
 
 	async getCachedContents(type) {
@@ -304,10 +300,10 @@ class AssetCache {
 	}
 
 	getCachedTimestamp() {
-		return this.cachedObject?.cachedAt || this.initialCacheTimestamp;
+		return this.cachedObject?.cachedAt;
 	}
 
-	isCacheValid(duration = this.defaultDuration) {
+	isCacheValid(duration = this.duration) {
 		if (!this.cachedObject) {
 			// not cached
 			return false;
