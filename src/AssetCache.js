@@ -256,7 +256,7 @@ class AssetCache {
 
 		this.ensureDir();
 
-		debugAssets("[@11ty/eleventy-fetch] Writing to disk cache from %o", this.source);
+		debugAssets("[11ty/eleventy-fetch] Writing %o from %o", contentPath, this.source);
 
 		// the contents must exist before the cache metadata are saved below
 		fs.writeFileSync(contentPath, contents);
@@ -271,11 +271,11 @@ class AssetCache {
 		debug(`Fetching from cache ${contentPath}`);
 
 		if (type === "json" || type === "parsed-xml") {
-			debugAssets("Reading from require('%o')", contentPath);
+			debugAssets("[11ty/eleventy-fetch] Reading require('%o')", contentPath);
 			return require(contentPath);
 		}
 
-		debugAssets("Reading from: %o", contentPath);
+		debugAssets("[11ty/eleventy-fetch] Reading %o", contentPath);
 		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
 	}
 

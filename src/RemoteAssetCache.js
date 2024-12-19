@@ -165,7 +165,7 @@ class RemoteAssetCache extends AssetCache {
 
 				this.fetchCount++;
 
-				debugAssets("[@11ty/eleventy-fetch] Fetching: %o", this.source);
+				debugAssets("[11ty/eleventy-fetch] Fetching %o", this.source);
 
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
 				let response = await fetch(this.source, fetchOptions);
