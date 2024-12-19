@@ -1,8 +1,11 @@
+const debugUtil = require("debug");
 const { parseXml } = require('@rgrove/parse-xml');
 
 const Sources = require("./Sources.js");
 const AssetCache = require("./AssetCache.js");
-const assetDebug = require("debug")("Eleventy:Assets");
+
+const debug = debugUtil("Eleventy:Fetch");
+const debugAssets = debugUtil("Eleventy:Assets");
 
 class RemoteAssetCache extends AssetCache {
 	#queue;
@@ -135,7 +138,7 @@ class RemoteAssetCache extends AssetCache {
 		// Important: no disk writes when dryRun
 		// As of Fetch v4, reads are now allowed!
 		if (this.isCacheValid(optionsOverride.duration)) {
-			this.log(`Cache hit for ${this.displayUrl}`);
+			debug(`Cache hit for ${this.displayUrl}`);
 			this.#lastFetchType = "hit";
 			return super.getCachedValue();
 		}
@@ -144,7 +147,7 @@ class RemoteAssetCache extends AssetCache {
 
 		try {
 			let isDryRun = optionsOverride.dryRun || this.options.dryRun;
-			this.log(`${isDryRun ? "Fetching" : "Cache miss for"} ${this.displayUrl}`);
+			this.log(`Fetching ${this.displayUrl}`);
 
 			let body;
 			let metadata = {};
@@ -162,7 +165,8 @@ class RemoteAssetCache extends AssetCache {
 
 				this.fetchCount++;
 
-				assetDebug("Fetching remote asset: %o", this.source);
+				debugAssets("[@11ty/eleventy-fetch] Fetching: %o", this.source);
+
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
 				let response = await fetch(this.source, fetchOptions);
 				if (!response.ok) {
@@ -196,8 +200,8 @@ class RemoteAssetCache extends AssetCache {
 			return body;
 		} catch (e) {
 			if (this.cachedObject) {
-				this.log(`Error fetching ${this.displayUrl}. Message: ${e.message}`);
-				this.log(`Failing gracefully with an expired cache entry.`);
+				debug(`Error fetching ${this.displayUrl}. Message: ${e.message}`);
+				debug(`Failing gracefully with an expired cache entry.`);
 				return super.getCachedValue();
 			} else {
 				return Promise.reject(e);

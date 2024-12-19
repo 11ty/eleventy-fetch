@@ -2,10 +2,10 @@ const fs = require("graceful-fs");
 const path = require("path");
 const { create: FlatCacheCreate } = require("flat-cache");
 const { createHash } = require("crypto");
+const debugUtil = require("debug");
 
 const Sources = require("./Sources.js");
 
-const debugUtil = require("debug");
 const debug = debugUtil("Eleventy:Fetch");
 const debugAssets = debugUtil("Eleventy:Assets");
 
@@ -256,7 +256,8 @@ class AssetCache {
 
 		this.ensureDir();
 
-		debugAssets("Writing cache file to disk for %o", this.source)
+		debugAssets("[@11ty/eleventy-fetch] Writing to disk cache from %o", this.source);
+
 		// the contents must exist before the cache metadata are saved below
 		fs.writeFileSync(contentPath, contents);
 		debug(`Writing ${contentPath}`);
@@ -361,11 +362,11 @@ class AssetCache {
 	async fetch(optionsOverride = {}) {
 		if (this.isCacheValid(optionsOverride.duration)) {
 			// promise
-			this.log(`Using cached version of: ${this.uniqueKey}`);
+			debug(`Using cached version of: ${this.uniqueKey}`);
 			return this.getCachedValue();
 		}
 
-		this.log(`Saving ${this.uniqueKey} to ${this.cacheFilename}`);
+		debug(`Saving ${this.uniqueKey} to ${this.cacheFilename}`);
 		await this.save(this.source, optionsOverride.type);
 
 		return this.source;
