@@ -113,12 +113,13 @@ class RemoteAssetCache extends AssetCache {
 			throw new Error("Missing `#queue` instance.");
 		}
 
-		if(this.#queuePromise) {
-			return this.#queuePromise;
+		if(!this.#queuePromise) {
+			// optionsOverride not supported on fetch here for re-use
+			this.#queuePromise = this.#queue.add(() => this.fetch()).catch((e) => {
+				this.#queuePromise = undefined;
+				throw e;
+			});
 		}
-
-		// optionsOverride not supported on fetch here for re-use
-		this.#queuePromise = this.#queue.add(() => this.fetch());
 
 		return this.#queuePromise;
 	}
@@ -199,7 +200,7 @@ class RemoteAssetCache extends AssetCache {
 
 			return body;
 		} catch (e) {
-			if (this.cachedObject) {
+			if (this.cachedObject && this.getDurationMs(this.duration) > 0) {
 				debug(`Error fetching ${this.displayUrl}. Message: ${e.message}`);
 				debug(`Failing gracefully with an expired cache entry.`);
 				return super.getCachedValue();
