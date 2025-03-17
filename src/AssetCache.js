@@ -228,8 +228,8 @@ class AssetCache {
 			return false;
 		}
 
-		if(DateCompare.isTimestampWithinDuration(this.cachedObject?.cachedAt, duration)) {
-			return this.cache.hasContents(); // check file system to make files haven’t been purged.
+		if(this.cachedObject?.type && DateCompare.isTimestampWithinDuration(this.cachedObject?.cachedAt, duration)) {
+			return this.cache.hasContents(this.cachedObject?.type); // check file system to make files haven’t been purged.
 		}
 
 		return false;
@@ -260,7 +260,7 @@ class AssetCache {
 
 	// for testing
 	hasAnyCacheFiles() {
-		for(let p of this.cache.getFilePaths()) {
+		for(let p of this.cache.getAllPossibleFilePaths()) {
 			if(fs.existsSync(p)) {
 				return true;
 			}
@@ -270,9 +270,7 @@ class AssetCache {
 
 	// for testing
 	async destroy() {
-		let paths = this.cache.getFilePaths();
-
-		await Promise.all(paths.map(path => {
+		await Promise.all(this.cache.getAllPossibleFilePaths().map(path => {
 			if (fs.existsSync(path)) {
 				return fs.unlinkSync(path);
 			}

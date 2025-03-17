@@ -55,10 +55,6 @@ class FileCache {
 		this.#directoryManager.create(this.#cacheDirectory);
 	}
 
-	isSideLoaded() {
-		return this.#metadata?.type === "buffer";
-	}
-
 	set(type, contents, extraMetadata = {}) {
 		this.#savePending = true;
 
@@ -76,9 +72,24 @@ class FileCache {
 		return path.join(this.#cacheDirectory, this.cacheFilename);
 	}
 
+	getContentsPath(type) {
+		if(!type) {
+			throw new Error("Missing cache type for " + this.fsPath);
+		}
+
+		// normalize to storage type
+		if(type === "xml") {
+			type = "text";
+		} else if(type === "parsed-xml") {
+			type = "json";
+		}
+
+		return `${this.fsPath}.${type}`;
+	}
+
 	// only when side loaded (buffer content)
 	get contentsPath() {
-		return `${this.fsPath}.buffer`;
+		return this.getContentsPath(this.#metadata?.type);
 	}
 
 	get() {
@@ -90,11 +101,11 @@ class FileCache {
 			return;
 		}
 
-		debug(`Fetching from cache ${this.contentsPath}`);
+		debug(`Fetching from cache ${this.fsPath}`);
 		if(this.#source) {
 			debugAssets("[11ty/eleventy-fetch] Reading via %o", this.#source);
 		} else {
-			debugAssets("[11ty/eleventy-fetch] Reading %o", this.contentsPath);
+			debugAssets("[11ty/eleventy-fetch] Reading %o", this.fsPath);
 		}
 
 		this.#counts.read++;
@@ -113,10 +124,6 @@ class FileCache {
 
 		this.#metadata = json;
 
-		if(json.data) { // not side-loaded
-			this.#contents = json.data;
-		}
-
 		return json;
 	}
 
@@ -131,16 +138,14 @@ class FileCache {
 		return Buffer.from(rawData.contents);
 	}
 
-	hasContents() {
+	hasContents(type) {
 		if(this.#contents) {
 			return true;
 		}
-		if(!this.isSideLoaded() && this.get()?.data) {
-			return true;
-		} else if(this.get()?.contents) {
+		if(this.get()?.contents) { // backwards compat with very old caches
 			return true;
 		}
-		return existsCache.exists(this.contentsPath);
+		return existsCache.exists(this.getContentsPath(type));
 	}
 
 	getContents() {
@@ -148,13 +153,12 @@ class FileCache {
 			return this.#contents;
 		}
 
-		// Side loaded contents are embedded inside, but we check (for backwards compat)
-		if(!this.isSideLoaded() && this.get()?.data) {
-			return this.get()?.data;
-		} else if(this.get()?.contents) {
-			// backwards compat with old caches
+		let metadata = this.get();
+		// backwards compat with old caches
+		if(metadata?.contents) {
+			// already parsed, part of the top level file
 			let normalizedContent = this._backwardsCompatGetContents(this.get(), this.#metadata.type);
-			this.#contents = normalizedContent; // set cache
+			this.#contents = normalizedContent;
 			return normalizedContent;
 		}
 
@@ -169,8 +173,13 @@ class FileCache {
 			debugAssets("[11ty/eleventy-fetch] Reading (side loaded) %o", this.contentsPath);
 		}
 
+		// It is intentional to store contents in a separate file from the metadata: we don’t want to
+		// have to read the entire contents via JSON.parse (or otherwise) to check the cache validity.
 		this.#counts.read++;
 		let data = fs.readFileSync(this.contentsPath, null);
+		if (metadata?.type === "json" || metadata?.type === "parsed-xml") {
+			data = JSON.parse(data);
+		}
 		this.#contents = data;
 		return data;
 	}
@@ -183,28 +192,30 @@ class FileCache {
 		this.ensureDir(); // doesn’t add to counts (yet?)
 
 		// contents before metadata
-		if(this.isSideLoaded()) {
-			debugAssets("[11ty/eleventy-fetch] Writing %o (side loaded) from %o", this.contentsPath, this.#source);
+		debugAssets("[11ty/eleventy-fetch] Writing %o (side loaded) from %o", this.contentsPath, this.#source);
 
-			this.#counts.write++;
-
-			// the contents must exist before the cache metadata are saved below
-			fs.writeFileSync(this.contentsPath, this.#contents);
-			debug(`Writing ${this.contentsPath}`);
+		this.#counts.write++;
+		// the contents must exist before the cache metadata are saved below
+		let contents = this.#contents;
+		if (this.#metadata?.type === "json" || this.#metadata?.type === "parsed-xml") {
+			contents = JSON.stringify(contents);
 		}
+		fs.writeFileSync(this.contentsPath, contents);
+		debug(`Writing ${this.contentsPath}`);
 
 		this.#counts.write++;
 		debugAssets("[11ty/eleventy-fetch] Writing %o from %o", this.fsPath, this.#source);
-		fs.writeFileSync(this.fsPath, JSON.stringify(Object.assign({}, this.#metadata, { data: this.#contents })), "utf8");
+		fs.writeFileSync(this.fsPath, JSON.stringify(this.#metadata), "utf8");
 		debug(`Writing ${this.fsPath}`);
 	}
 
 	// for testing
-	getFilePaths() {
+	getAllPossibleFilePaths() {
+		let types = ["text", "buffer", "json"];
 		let paths = new Set();
 		paths.add(this.fsPath);
-		if(this.isSideLoaded()) {
-			paths.add(this.contentsPath);
+		for(let type of types) {
+			paths.add(this.getContentsPath(type));
 		}
 		return Array.from(paths);
 	}
