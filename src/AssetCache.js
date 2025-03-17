@@ -1,9 +1,10 @@
 const fs = require("graceful-fs");
 const path = require("path");
-const { create: FlatCacheCreate } = require("flat-cache");
 const { createHash } = require("crypto");
 const debugUtil = require("debug");
+const { DateCompare } = require("@11ty/eleventy-utils");
 
+const FileCache = require("./FileCache.js");
 const Sources = require("./Sources.js");
 const DirectoryManager = require("./DirectoryManager.js");
 
@@ -18,7 +19,7 @@ class AssetCache {
 	#cacheDirectory;
 	#cacheLocationDirty = false;
 	#directoryManager;
-	#rawContents = {}
+	#rawContents = {};
 
 	constructor(source, cacheDirectory, options = {}) {
 		if(!Sources.isValidSource(source)) {
@@ -173,10 +174,11 @@ class AssetCache {
 
 	get cache() {
 		if (!this.#cache || this.#cacheLocationDirty) {
-			let cache = FlatCacheCreate({
-				cacheId: this.cacheFilename,
-				cacheDir: this.rootDir,
+			let cache = new FileCache(this.cacheFilename, {
+				dir: this.rootDir
 			});
+			cache.setDryRun(this.options.dryRun);
+			cache.setDirectoryManager(this.#directoryManager);
 
 			this.#cache = cache;
 			this.#cacheLocationDirty = false;
@@ -185,24 +187,7 @@ class AssetCache {
 	}
 
 	getDurationMs(duration = "0s") {
-		let durationUnits = duration.slice(-1);
-		let durationMultiplier;
-		if (durationUnits === "s") {
-			durationMultiplier = 1;
-		} else if (durationUnits === "m") {
-			durationMultiplier = 60;
-		} else if (durationUnits === "h") {
-			durationMultiplier = 60 * 60;
-		} else if (durationUnits === "d") {
-			durationMultiplier = 60 * 60 * 24;
-		} else if (durationUnits === "w") {
-			durationMultiplier = 60 * 60 * 24 * 7;
-		} else if (durationUnits === "y") {
-			durationMultiplier = 60 * 60 * 24 * 365;
-		}
-
-		let durationValue = parseInt(duration.slice(0, duration.length - 1), 10);
-		return durationValue * durationMultiplier * 1000;
+		return DateCompare.getDurationMs(duration);
 	}
 
 	getCachedContentsPath(type = "buffer") {
@@ -263,8 +248,6 @@ class AssetCache {
 		// the contents must exist before the cache metadata are saved below
 		fs.writeFileSync(contentPath, contents);
 		debug(`Writing ${contentPath}`);
-
-		this.cache.save();
 	}
 
 	async #getCachedContents(type) {
@@ -335,27 +318,7 @@ class AssetCache {
 			return false;
 		}
 
-		// in the cache and no duration
-		if (!duration || duration === "*") {
-			// no duration specified (plugin default is 1d, but if this is falsy assume infinite)
-			// "*" is infinite duration
-			return true;
-		}
-
-		debug("Cache check for: %o %o (duration: %o)", this.hash, this.source, duration);
-		debug("Cache object: %o", this.cachedObject);
-
-		let compareDuration = this.getDurationMs(duration);
-		let expiration = this.cachedObject.cachedAt + compareDuration;
-		let expirationRelative = Math.abs(Date.now() - expiration);
-
-		if (expiration > Date.now()) {
-			debug("Cache okay, expires in %o s (%o)", expirationRelative / 1000, new Date(expiration));
-			return true;
-		}
-
-		debug("Cache expired %o s ago (%o)", expirationRelative / 1000, new Date(expiration));
-		return false;
+		return DateCompare.isTimestampWithinDuration(this.cachedObject.cachedAt, duration);
 	}
 
 	get cachedObject() {
