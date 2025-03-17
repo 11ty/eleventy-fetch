@@ -189,7 +189,7 @@ class FileCache {
 			this.#counts.write++;
 
 			// the contents must exist before the cache metadata are saved below
-			fs.writeFileSync(this.contentsPath, contents);
+			fs.writeFileSync(this.contentsPath, this.#contents);
 			debug(`Writing ${this.contentsPath}`);
 		}
 
