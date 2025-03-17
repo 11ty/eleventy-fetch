@@ -1,6 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const debugUtil = require("debug");
+const { parse } = require("flatted");
+
 const debug = debugUtil("Eleventy:Fetch");
 const debugAssets = debugUtil("Eleventy:Assets");
 
@@ -97,7 +99,18 @@ class FileCache {
 
 		this.#counts.read++;
 		let data = fs.readFileSync(this.fsPath, "utf8");
-		let json = JSON.parse(data);
+
+		let json;
+		// Backwards compatibility with previous caches usingn flat-cache and `flatted`
+		if(data.startsWith(`[["1"],`)) {
+			let flattedParsed = parse(data);
+			if(flattedParsed?.[0]?.value) {
+				json = flattedParsed?.[0]?.value
+			}
+		} else {
+			json = JSON.parse(data);
+		}
+
 		this.#metadata = json;
 
 		if(json.data) { // not side-loaded
@@ -107,13 +120,30 @@ class FileCache {
 		return json;
 	}
 
+	_backwardsCompatGetContents(rawData, type) {
+		if (type === "json") {
+			return rawData.contents;
+		} else if (type === "text") {
+			return rawData.contents.toString();
+		}
+
+		// buffer
+		return Buffer.from(rawData.contents);
+	}
+
 	getContents() {
 		if(this.#contents) {
 			return this.#contents;
 		}
+
 		// Side loaded contents are embedded inside, but we check (for backwards compat)
 		if(!this.isSideLoaded() && this.get()?.data) {
 			return this.get()?.data;
+		} else if(this.get()?.contents) {
+			// backwards compat with old caches
+			let normalizedContent = this._backwardsCompatGetContents(this.get(), this.#metadata.type);
+			this.#contents = normalizedContent; // set cache
+			return normalizedContent;
 		}
 
 		if(!existsCache.exists(this.contentsPath)) {

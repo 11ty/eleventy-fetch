@@ -48,6 +48,7 @@
 		"@11ty/eleventy-utils": "^2.0.1",
 		"@rgrove/parse-xml": "^4.2.0",
 		"debug": "^4.4.0",
+		"flatted": "^3.3.3",
 		"graceful-fs": "^4.2.11",
 		"p-queue": "6.6.2"
 	},

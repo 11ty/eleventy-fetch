@@ -195,19 +195,6 @@ class AssetCache {
 		this.#directoryManager = manager;
 	}
 
-	ensureDir() {
-		if (this.options.dryRun) {
-			return;
-		}
-
-		if(!this.#directoryManager) {
-			// standalone fallback (for tests)
-			this.#directoryManager = new DirectoryManager();
-		}
-
-		this.#directoryManager.create(this.cacheDirectory);
-	}
-
 	async save(contents, type = "buffer", metadata = {}) {
 		if(!contents) {
 			throw new Error("save(contents) expects contents (was falsy)");
@@ -216,42 +203,23 @@ class AssetCache {
 		this.cache.set(type, contents, metadata);
 
 		// Dry-run handled downstream
-		this.#cache.save();
+		this.cache.save();
 	}
 
 	getCachedContents() {
-		return this.#cache.getContents();
-	}
-
-	_backwardsCompatibilityGetCachedValue(type) {
-		if (type === "json") {
-			return this.cachedObject.contents;
-		} else if (type === "text") {
-			return this.cachedObject.contents.toString();
-		}
-
-		// buffer
-		return Buffer.from(this.cachedObject.contents);
+		return this.cache.getContents();
 	}
 
 	getCachedValue() {
-		let type = this.cachedObject.type;
-
-		// backwards compat with old caches
-		// v6+ caches use `data` as internal property for contents
-		if (this.cachedObject.contents) {
-			return this._backwardsCompatibilityGetCachedValue(type);
-		}
-
 		if(this.options.returnType === "response") {
 			return {
 				...this.cachedObject.metadata?.response,
-				body: this.getCachedContents(type),
+				body: this.getCachedContents(),
 				cache: "hit",
 			}
 		}
 
-		return this.getCachedContents(type);
+		return this.getCachedContents();
 	}
 
 	getCachedTimestamp() {
@@ -292,7 +260,7 @@ class AssetCache {
 
 	// for testing
 	hasAnyCacheFiles() {
-		for(let p of this.#cache.getFilePaths()) {
+		for(let p of this.cache.getFilePaths()) {
 			if(fs.existsSync(p)) {
 				return true;
 			}
@@ -302,7 +270,7 @@ class AssetCache {
 
 	// for testing
 	async destroy() {
-		let paths = this.#cache.getFilePaths();
+		let paths = this.cache.getFilePaths();
 
 		await Promise.all(paths.map(path => {
 			if (fs.existsSync(path)) {

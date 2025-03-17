@@ -114,3 +114,20 @@ test("Uses filenameFormat", async (t) => {
 
 	t.falsy(asset.hasAnyCacheFiles());
 });
+
+test("v5 flatted cache file", async (t) => {
+	let asset = new AssetCache("some-thing", "test", {
+		filenameFormat() {
+			// don’t include the file extension
+			return "v5flattedcachefile";
+		},
+	});
+
+	let cachePath = normalizePath(asset.cachePath);
+	t.truthy(cachePath.endsWith("test/v5flattedcachefile"));
+	t.truthy(asset.cachedObject.cachedAt);
+	t.truthy(asset.cachedObject.metadata);
+	t.is(asset.cachedObject.type, "json");
+	t.deepEqual(asset.getCachedValue(), undefined);
+	t.deepEqual(asset.getCachedContents(), undefined);
+});
