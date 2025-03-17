@@ -50,7 +50,7 @@ test("Double Fetch (dry run)", async (t) => {
 		dryRun: true,
 	});
 	// file is now accessible
-	t.false(forTestOnly.hasCacheFiles());
+	t.false(forTestOnly.hasAnyCacheFiles());
 });
 
 test("Double Fetch async function (dry run)", async (t) => {
