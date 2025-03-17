@@ -216,3 +216,19 @@ test("Raw Fetch using fetch method (check parallel fetch promise reuse)", async 
 		await ac2.destroy();
 	} catch (e) {}
 });
+
+test("Refetches data on transient failures", async (t) => {
+	let firstFetch = true;
+	let successData = "Good data";
+	let failData = "Transient error";
+	let ac1 = Fetch(() => {
+		if (firstFetch) {
+			firstFetch = false;
+			throw new Error(failData)
+		}
+		return successData;
+	}, {duration: "0s"})
+
+	await t.throwsAsync(async () => await ac1.queue())
+	t.is(await ac1.queue(), successData);
+})
