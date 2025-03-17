@@ -131,6 +131,18 @@ class FileCache {
 		return Buffer.from(rawData.contents);
 	}
 
+	hasContents() {
+		if(this.#contents) {
+			return true;
+		}
+		if(!this.isSideLoaded() && this.get()?.data) {
+			return true;
+		} else if(this.get()?.contents) {
+			return true;
+		}
+		return existsCache.exists(this.contentsPath);
+	}
+
 	getContents() {
 		if(this.#contents) {
 			return this.#contents;

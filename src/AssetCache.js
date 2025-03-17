@@ -5,11 +5,9 @@ const { DateCompare } = require("@11ty/eleventy-utils");
 
 const FileCache = require("./FileCache.js");
 const Sources = require("./Sources.js");
-const DirectoryManager = require("./DirectoryManager.js");
 
 const debugUtil = require("debug");
 const debug = debugUtil("Eleventy:Fetch");
-const debugAssets = debugUtil("Eleventy:Assets");
 
 class AssetCache {
 	#source;
@@ -19,7 +17,6 @@ class AssetCache {
 	#cacheDirectory;
 	#cacheLocationDirty = false;
 	#directoryManager;
-	#rawContents = {};
 
 	constructor(source, cacheDirectory, options = {}) {
 		if(!Sources.isValidSource(source)) {
@@ -227,12 +224,15 @@ class AssetCache {
 	}
 
 	isCacheValid(duration = this.duration) {
-		if (!this.cachedObject || !this.cachedObject.cachedAt) {
-			// not cached
+		if(!this.cachedObject || !this.cachedObject?.cachedAt) {
 			return false;
 		}
 
-		return DateCompare.isTimestampWithinDuration(this.cachedObject.cachedAt, duration);
+		if(DateCompare.isTimestampWithinDuration(this.cachedObject?.cachedAt, duration)) {
+			return this.cache.hasContents(); // check file system to make files haven’t been purged.
+		}
+
+		return false;
 	}
 
 	get cachedObject() {
