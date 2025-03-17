@@ -44,15 +44,12 @@ test("AWS Lambda root directory resolves correctly", (t) => {
 test("Test a save", async (t) => {
 	let asset = new AssetCache("zachleat_twitter_followers", ".customcache");
 	let cachePath = normalizePath(asset.cachePath);
-	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
 
 	await asset.save({ followers: 10 }, "json");
 
-	t.truthy(fs.existsSync(jsonCachePath));
 	t.truthy(fs.existsSync(cachePath));
 
 	fs.unlinkSync(cachePath);
-	fs.unlinkSync(jsonCachePath);
 });
 
 test("Cache path should handle slashes without creating directories, issue #14", (t) => {
@@ -66,51 +63,35 @@ test("Uses `requestId` property when caching a promise", async (t) => {
 	let asset = new AssetCache(Promise.resolve(), ".customcache", {
 		requestId: "mock-display-url-2",
 	});
-	let cachePath = normalizePath(asset.cachePath);
-	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
 
 	await asset.save({ name: "Sophia Smith" }, "json");
 
-	t.truthy(fs.existsSync(jsonCachePath));
-
 	await asset.destroy();
 
-	t.falsy(fs.existsSync(cachePath));
-	t.falsy(fs.existsSync(jsonCachePath));
+	t.falsy(asset.hasAnyCacheFiles());
 });
 
 test("Uses `requestId` property when caching a function", async (t) => {
 	let asset = new AssetCache(function() {}, ".cache", {
 		requestId: "mock-function",
 	});
-	let cachePath = normalizePath(asset.cachePath);
-	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
-
 	await asset.save({ name: "Sophia Smith" }, "json");
-
-	t.truthy(fs.existsSync(jsonCachePath));
 
 	await asset.destroy();
 
-	t.falsy(fs.existsSync(cachePath));
-	t.falsy(fs.existsSync(jsonCachePath));
+	t.falsy(asset.hasAnyCacheFiles());
 });
 
 test("Uses `requestId` property when caching an async function", async (t) => {
 	let asset = new AssetCache(async function() {}, ".cache", {
 		requestId: "mock-async-function",
 	});
-	let cachePath = normalizePath(asset.cachePath);
-	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
 
 	await asset.save({ name: "Sophia Smith" }, "json");
 
-	t.truthy(fs.existsSync(jsonCachePath));
-
 	await asset.destroy();
 
-	t.falsy(fs.existsSync(cachePath));
-	t.falsy(fs.existsSync(jsonCachePath));
+	t.falsy(asset.hasAnyCacheFiles());
 });
 
 test("Uses filenameFormat", async (t) => {
@@ -122,18 +103,14 @@ test("Uses filenameFormat", async (t) => {
 	});
 
 	let cachePath = normalizePath(asset.cachePath);
-	let jsonCachePath = normalizePath(asset.getCachedContentsPath("json"));
 
 	t.truthy(cachePath.endsWith("/.cache/testing"));
-	t.truthy(jsonCachePath.endsWith("/.cache/testing.json"));
 
 	await asset.save({ name: "Sophia Smith" }, "json");
 
 	t.truthy(fs.existsSync(cachePath));
-	t.truthy(fs.existsSync(jsonCachePath));
 
 	await asset.destroy();
 
-	t.falsy(fs.existsSync(cachePath));
-	t.falsy(fs.existsSync(jsonCachePath));
+	t.falsy(asset.hasAnyCacheFiles());
 });

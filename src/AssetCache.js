@@ -1,13 +1,13 @@
 const fs = require("graceful-fs");
 const path = require("path");
 const { createHash } = require("crypto");
-const debugUtil = require("debug");
 const { DateCompare } = require("@11ty/eleventy-utils");
 
 const FileCache = require("./FileCache.js");
 const Sources = require("./Sources.js");
 const DirectoryManager = require("./DirectoryManager.js");
 
+const debugUtil = require("debug");
 const debug = debugUtil("Eleventy:Fetch");
 const debugAssets = debugUtil("Eleventy:Assets");
 
@@ -175,7 +175,8 @@ class AssetCache {
 	get cache() {
 		if (!this.#cache || this.#cacheLocationDirty) {
 			let cache = new FileCache(this.cacheFilename, {
-				dir: this.rootDir
+				dir: this.rootDir,
+				source: this.source,
 			});
 			cache.setDryRun(this.options.dryRun);
 			cache.setDirectoryManager(this.#directoryManager);
@@ -188,16 +189,6 @@ class AssetCache {
 
 	getDurationMs(duration = "0s") {
 		return DateCompare.getDurationMs(duration);
-	}
-
-	getCachedContentsPath(type = "buffer") {
-		if(type === "xml") {
-			type = "text";
-		} else if(type === "parsed-xml") {
-			type = "json";
-		}
-
-		return `${this.cachePath}.${type}`;
 	}
 
 	setDirectoryManager(manager) {
@@ -222,59 +213,14 @@ class AssetCache {
 			throw new Error("save(contents) expects contents (was falsy)");
 		}
 
-		this.cache.set(this.hash, {
-			cachedAt: Date.now(),
-			type: type,
-			metadata,
-		});
+		this.cache.set(type, contents, metadata);
 
-		let contentPath = this.getCachedContentsPath(type);
-
-		if (type === "json" || type === "parsed-xml") {
-			contents = JSON.stringify(contents);
-		}
-
-		this.#rawContents[type] = contents;
-
-		if(this.options.dryRun) {
-			debug(`Dry run writing ${contentPath}`);
-			return;
-		}
-
-		this.ensureDir();
-
-		debugAssets("[11ty/eleventy-fetch] Writing %o from %o", contentPath, this.source);
-
-		// the contents must exist before the cache metadata are saved below
-		fs.writeFileSync(contentPath, contents);
-		debug(`Writing ${contentPath}`);
+		// Dry-run handled downstream
+		this.#cache.save();
 	}
 
-	async #getCachedContents(type) {
-		let contentPath = this.getCachedContentsPath(type);
-
-		debug(`Fetching from cache ${contentPath}`);
-
-		if(this.source) {
-			debugAssets("[11ty/eleventy-fetch] Reading via %o", this.source);
-		} else {
-			debugAssets("[11ty/eleventy-fetch] Reading %o", contentPath);
-		}
-
-		if (type === "json" || type === "parsed-xml") {
-			return require(contentPath);
-		}
-
-		return fs.readFileSync(contentPath, type !== "buffer" ? "utf8" : null);
-	}
-
-	async getCachedContents(type) {
-		if(!this.#rawContents[type]) {
-			this.#rawContents[type] = this.#getCachedContents(type);
-		}
-
-		// already saved on this instance in-memory
-		return this.#rawContents[type];
+	getCachedContents() {
+		return this.#cache.getContents();
 	}
 
 	_backwardsCompatibilityGetCachedValue(type) {
@@ -288,10 +234,11 @@ class AssetCache {
 		return Buffer.from(this.cachedObject.contents);
 	}
 
-	async getCachedValue() {
+	getCachedValue() {
 		let type = this.cachedObject.type;
 
 		// backwards compat with old caches
+		// v6+ caches use `data` as internal property for contents
 		if (this.cachedObject.contents) {
 			return this._backwardsCompatibilityGetCachedValue(type);
 		}
@@ -299,12 +246,11 @@ class AssetCache {
 		if(this.options.returnType === "response") {
 			return {
 				...this.cachedObject.metadata?.response,
-				body: await this.getCachedContents(type),
+				body: this.getCachedContents(type),
 				cache: "hit",
 			}
 		}
 
-		// promise
 		return this.getCachedContents(type);
 	}
 
@@ -313,7 +259,7 @@ class AssetCache {
 	}
 
 	isCacheValid(duration = this.duration) {
-		if (!this.cachedObject) {
+		if (!this.cachedObject || !this.cachedObject.cachedAt) {
 			// not cached
 			return false;
 		}
@@ -322,7 +268,7 @@ class AssetCache {
 	}
 
 	get cachedObject() {
-		return this.cache.get(this.hash);
+		return this.cache.get();
 	}
 
 	// Deprecated
@@ -345,17 +291,18 @@ class AssetCache {
 	}
 
 	// for testing
-	hasCacheFiles() {
-		return fs.existsSync(this.cachePath) || fs.existsSync(this.getCachedContentsPath());
+	hasAnyCacheFiles() {
+		for(let p of this.#cache.getFilePaths()) {
+			if(fs.existsSync(p)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// for testing
 	async destroy() {
-		let paths = [];
-		paths.push(this.cachePath);
-		paths.push(this.getCachedContentsPath("json"));
-		paths.push(this.getCachedContentsPath("text"));
-		paths.push(this.getCachedContentsPath("buffer"));
+		let paths = this.#cache.getFilePaths();
 
 		await Promise.all(paths.map(path => {
 			if (fs.existsSync(path)) {

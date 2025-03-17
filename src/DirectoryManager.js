@@ -1,5 +1,5 @@
 const fs = require("node:fs");
-const debug = require("debug")("Eleventy:Assets");
+const debugAssets = require("debug")("Eleventy:Assets");
 
 class DirectoryManager {
   #dirs = new Set();
@@ -14,7 +14,7 @@ class DirectoryManager {
     }
 
     this.#dirs.add(dir);
-    debug("Creating directory %o", dir);
+    debugAssets("Creating directory %o", dir);
     fs.mkdirSync(dir, { recursive: true });
   }
 }

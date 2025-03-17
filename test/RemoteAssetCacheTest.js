@@ -129,7 +129,7 @@ test("Fetching (dry run)!", async (t) => {
 	let buffer = await ac.fetch();
 	t.is(Buffer.isBuffer(buffer), true);
 	t.is(ac.fetchCount, 1);
-	t.false(ac.hasCacheFiles());
+	t.false(ac.hasAnyCacheFiles());
 });
 
 test("Fetching pass in URL", async (t) => {
@@ -237,9 +237,7 @@ test("Error with `cause`", async (t) => {
 		);
 		t.truthy(e.cause);
 	} finally {
-		try {
-			await asset.destroy();
-		} catch (e) {}
+		await asset.destroy();
 	}
 });
 

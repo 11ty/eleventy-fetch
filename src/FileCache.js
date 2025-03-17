@@ -1,5 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const debugUtil = require("debug");
+const debug = debugUtil("Eleventy:Fetch");
+const debugAssets = debugUtil("Eleventy:Assets");
 
 const DirectoryManager = require("./DirectoryManager.js");
 const ExistsCache = require("./ExistsCache.js");
@@ -7,19 +10,25 @@ const ExistsCache = require("./ExistsCache.js");
 let existsCache = new ExistsCache();
 
 class FileCache {
+	#source;
 	#directoryManager;
-	#data = {};
+	#metadata;
+	#contents;
 	#dryRun = false;
 	#cacheDirectory = ".cache";
+	#savePending = false;
 	#counts = {
 		read: 0,
 		write: 0,
-	}
+	};
 
-	constructor(cacheId, options = {}) {
-		this.cacheId = cacheId;
+	constructor(cacheFilename, options = {}) {
+		this.cacheFilename = cacheFilename;
 		if(options.dir) {
 			this.#cacheDirectory = options.dir;
+		}
+		if(options.source) {
+			this.#source = options.source;
 		}
 	}
 
@@ -44,39 +53,118 @@ class FileCache {
 		this.#directoryManager.create(this.#cacheDirectory);
 	}
 
-	set(id, obj) {
-		if(this.#data[id] !== obj) {
-			this.#data[id] = obj;
-			this.save();
-		}
+	isSideLoaded() {
+		return this.#metadata?.type === "buffer";
+	}
+
+	set(type, contents, extraMetadata = {}) {
+		this.#savePending = true;
+
+		this.#metadata = {
+			cachedAt: Date.now(),
+			type,
+			// source: this.#source,
+			metadata: extraMetadata,
+		};
+
+		this.#contents = contents;
 	}
 
 	get fsPath() {
-		return path.join(this.#cacheDirectory, this.cacheId);
+		return path.join(this.#cacheDirectory, this.cacheFilename);
 	}
 
-	get(id) {
-		if(this.#data[id]) {
-			return this.#data[id];
+	// only when side loaded (buffer content)
+	get contentsPath() {
+		return `${this.fsPath}.buffer`;
+	}
+
+	get() {
+		if(this.#metadata) {
+			return this.#metadata;
 		}
 
 		if(!existsCache.exists(this.fsPath)) {
 			return;
 		}
 
-		this.#counts.read++;
+		debug(`Fetching from cache ${this.contentsPath}`);
+		if(this.#source) {
+			debugAssets("[11ty/eleventy-fetch] Reading via %o", this.#source);
+		} else {
+			debugAssets("[11ty/eleventy-fetch] Reading %o", this.contentsPath);
+		}
 
+		this.#counts.read++;
 		let data = fs.readFileSync(this.fsPath, "utf8");
 		let json = JSON.parse(data);
-		this.#data[id] = json;
+		this.#metadata = json;
+
+		if(json.data) { // not side-loaded
+			this.#contents = json.data;
+		}
+
 		return json;
 	}
 
+	getContents() {
+		if(this.#contents) {
+			return this.#contents;
+		}
+		// Side loaded contents are embedded inside, but we check (for backwards compat)
+		if(!this.isSideLoaded() && this.get()?.data) {
+			return this.get()?.data;
+		}
+
+		if(!existsCache.exists(this.contentsPath)) {
+			return;
+		}
+
+		debug(`Fetching from cache ${this.contentsPath}`);
+		if(this.#source) {
+			debugAssets("[11ty/eleventy-fetch] Reading (side loaded) via %o", this.#source);
+		} else {
+			debugAssets("[11ty/eleventy-fetch] Reading (side loaded) %o", this.contentsPath);
+		}
+
+		this.#counts.read++;
+		let data = fs.readFileSync(this.contentsPath, null);
+		this.#contents = data;
+		return data;
+	}
+
 	save() {
+		if(this.#dryRun || !this.#savePending || this.#metadata && Object.keys(this.#metadata) === 0) {
+			return;
+		}
+
 		this.ensureDir(); // doesn’t add to counts (yet?)
 
+		// contents before metadata
+		if(this.isSideLoaded()) {
+			debugAssets("[11ty/eleventy-fetch] Writing %o (side loaded) from %o", this.contentsPath, this.#source);
+
+			this.#counts.write++;
+
+			// the contents must exist before the cache metadata are saved below
+			fs.writeFileSync(this.contentsPath, contents);
+			debug(`Writing ${this.contentsPath}`);
+		}
+
 		this.#counts.write++;
-		fs.writeFileSync(this.fsPath, JSON.stringify(this.#data), "utf8");
+		debugAssets("[11ty/eleventy-fetch] Writing %o from %o", this.fsPath, this.#source);
+		fs.writeFileSync(this.fsPath, JSON.stringify(Object.assign({}, this.#metadata, { data: this.#contents })), "utf8");
+		debug(`Writing ${this.fsPath}`);
+	}
+
+	// for testing
+	getFilePaths() {
+		let paths = new Set();
+		paths.add(this.fsPath);
+		if(this.isSideLoaded()) {
+			paths.add(this.contentsPath);
+		}
+		return Array.from(paths);
 	}
 }
 
