@@ -15,6 +15,7 @@ class FileCache {
 	#source;
 	#directoryManager;
 	#metadata;
+	#defaultType;
 	#contents;
 	#dryRun = false;
 	#cacheDirectory = ".cache";
@@ -31,6 +32,12 @@ class FileCache {
 		}
 		if(options.source) {
 			this.#source = options.source;
+		}
+	}
+
+	setDefaultType(type) {
+		if(type) {
+			this.#defaultType = type;
 		}
 	}
 
@@ -148,6 +155,10 @@ class FileCache {
 		return existsCache.exists(this.getContentsPath(type));
 	}
 
+	getType() {
+		return this.#metadata?.type || this.#defaultType;
+	}
+
 	getContents() {
 		if(this.#contents) {
 			return this.#contents;
@@ -157,7 +168,7 @@ class FileCache {
 		// backwards compat with old caches
 		if(metadata?.contents) {
 			// already parsed, part of the top level file
-			let normalizedContent = this._backwardsCompatGetContents(this.get(), this.#metadata.type);
+			let normalizedContent = this._backwardsCompatGetContents(this.get(), this.getType());
 			this.#contents = normalizedContent;
 			return normalizedContent;
 		}
@@ -176,8 +187,9 @@ class FileCache {
 		// It is intentional to store contents in a separate file from the metadata: we don’t want to
 		// have to read the entire contents via JSON.parse (or otherwise) to check the cache validity.
 		this.#counts.read++;
-		let data = fs.readFileSync(this.contentsPath, null);
-		if (metadata?.type === "json" || metadata?.type === "parsed-xml") {
+		let type = metadata?.type || this.getType();
+		let data = fs.readFileSync(this.contentsPath);
+		if (type === "json" || type === "parsed-xml") {
 			data = JSON.parse(data);
 		}
 		this.#contents = data;
@@ -197,7 +209,8 @@ class FileCache {
 		this.#counts.write++;
 		// the contents must exist before the cache metadata are saved below
 		let contents = this.#contents;
-		if (this.#metadata?.type === "json" || this.#metadata?.type === "parsed-xml") {
+		let type = this.getType();
+		if (type === "json" || type === "parsed-xml") {
 			contents = JSON.stringify(contents);
 		}
 		fs.writeFileSync(this.contentsPath, contents);

@@ -175,6 +175,7 @@ class AssetCache {
 				dir: this.rootDir,
 				source: this.source,
 			});
+			cache.setDefaultType(this.options.type);
 			cache.setDryRun(this.options.dryRun);
 			cache.setDirectoryManager(this.#directoryManager);
 
