@@ -1,6 +1,6 @@
 {
 	"name": "@11ty/eleventy-fetch",
-	"version": "5.1.0-beta.1",
+	"version": "5.1.0-beta.2",
 	"description": "Fetch and locally cache remote API calls and assets.",
 	"publishConfig": {
 		"access": "public"
