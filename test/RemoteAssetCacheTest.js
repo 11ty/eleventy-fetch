@@ -1,5 +1,5 @@
 const test = require("ava");
-const path = require("path");
+const path = require("node:path");
 const { Util } = require("../");
 const AssetCache = require("../src/AssetCache");
 const RemoteAssetCache = require("../src/RemoteAssetCache");
