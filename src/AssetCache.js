@@ -1,4 +1,4 @@
-const fs = require("graceful-fs");
+const fs = require("fs");
 const path = require("path");
 const { createHash } = require("crypto");
 const { DateCompare } = require("@11ty/eleventy-utils");
