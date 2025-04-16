@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const { createHash } = require("crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+const { createHash } = require("node:crypto");
 const { DateCompare } = require("@11ty/eleventy-utils");
 
 const FileCache = require("./FileCache.js");
