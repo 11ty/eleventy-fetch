@@ -41,7 +41,7 @@
 	},
 	"homepage": "https://github.com/11ty/eleventy-fetch#readme",
 	"devDependencies": {
-		"ava": "^6.2.0",
+		"ava": "^6.3.0",
 		"prettier": "^3.5.3"
 	},
 	"dependencies": {
