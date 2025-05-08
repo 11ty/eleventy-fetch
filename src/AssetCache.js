@@ -1,7 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { createHash } = require("node:crypto");
-const { DateCompare } = require("@11ty/eleventy-utils");
+const { DateCompare, createHashHexSync } = require("@11ty/eleventy-utils");
 
 const FileCache = require("./FileCache.js");
 const Sources = require("./Sources.js");
@@ -88,22 +87,12 @@ class AssetCache {
 	// Defult hashLength also set in global options, duplicated here for tests
 	// v5.0+ key can be Array or literal
 	static getHash(key, hashLength = 30) {
-		let hash = createHash("sha256");
-
 		if (!Array.isArray(key)) {
 			key = [key];
 		}
 
-		for (let k of key) {
-			k = "" + k;
-			if (k) {
-				hash.update(k);
-			} else {
-				throw new Error(`Not able to convert asset key (${k}) to string.`);
-			}
-		}
-
-		return ("" + hash.digest("hex")).slice(0, hashLength);
+		let result = createHashHexSync(...key);
+		return result.slice(0, hashLength);
 	}
 
 	get source() {

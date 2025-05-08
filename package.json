@@ -45,7 +45,7 @@
 		"prettier": "^3.5.3"
 	},
 	"dependencies": {
-		"@11ty/eleventy-utils": "^2.0.1",
+		"@11ty/eleventy-utils": "^2.0.7",
 		"@rgrove/parse-xml": "^4.2.0",
 		"debug": "^4.4.0",
 		"flatted": "^3.3.3",
