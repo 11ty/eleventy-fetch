@@ -41,13 +41,13 @@
 	},
 	"homepage": "https://github.com/11ty/eleventy-fetch#readme",
 	"devDependencies": {
-		"ava": "^6.3.0",
-		"prettier": "^3.5.3"
+		"ava": "^6.4.1",
+		"prettier": "^3.7.3"
 	},
 	"dependencies": {
 		"@11ty/eleventy-utils": "^2.0.7",
 		"@rgrove/parse-xml": "^4.2.0",
-		"debug": "^4.4.0",
+		"debug": "^4.4.3",
 		"flatted": "^3.3.3",
 		"p-queue": "6.6.2"
 	},
