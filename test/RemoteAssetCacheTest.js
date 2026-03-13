@@ -225,7 +225,7 @@ test("Issue #6, URLs with HTTP Auth", async (t) => {
 });
 
 test("Error with `cause`", async (t) => {
-	let finalUrl = "https://example.com/207115/photos/243-0-1.jpg";
+	let finalUrl = "https://zachleat.com/207115/photos/243-0-1.jpg";
 	let asset = new RemoteAssetCache(finalUrl);
 
 	try {
@@ -233,7 +233,7 @@ test("Error with `cause`", async (t) => {
 	} catch (e) {
 		t.is(
 			e.message,
-			`Bad response for https://example.com/207115/photos/243-0-1.jpg: fetch failed`,
+			`Bad response for https://zachleat.com/207115/photos/243-0-1.jpg (404): Not Found`,
 		);
 		t.truthy(e.cause);
 	} finally {

@@ -3,7 +3,7 @@ const Cache = require("../eleventy-fetch.js");
 const { queue, Fetch } = Cache;
 
 test("Queue without options", async (t) => {
-	let example = "https://example.com/";
+	let example = "https://www.11ty.dev/";
 	let req = await queue(example, () => {
 		let asset = new RemoteAssetCache(example);
 		return asset.fetch();

@@ -169,28 +169,21 @@ class RemoteAssetCache extends AssetCache {
 				debugAssets("[11ty/eleventy-fetch] Fetching %o", this.source);
 
 				// v5: now using global (Node-native or otherwise) fetch instead of node-fetch
-				try {
-					let response = await fetch(this.source, fetchOptions);
-					if (!response.ok) {
-						throw new Error(
-							`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`,
-							{ cause: response },
-						);
-					}
-
-					metadata.response = {
-						url: response.url,
-						status: response.status,
-						headers:  Object.fromEntries(response.headers.entries()),
-					};
-
-					body = await this.getResponseValue(response, type);
-				} catch(e) {
+				let response = await fetch(this.source, fetchOptions);
+				if (!response.ok) {
 					throw new Error(
-						`Bad response for ${this.displayUrl}: ${e.message}`,
-						{ cause: e },
+						`Bad response for ${this.displayUrl} (${response.status}): ${response.statusText}`,
+						{ cause: response },
 					);
 				}
+
+				metadata.response = {
+					url: response.url,
+					status: response.status,
+					headers:  Object.fromEntries(response.headers.entries()),
+				};
+
+				body = await this.getResponseValue(response, type);
 			}
 
 			if (!isDryRun) {
