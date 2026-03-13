@@ -174,7 +174,7 @@ class RemoteAssetCache extends AssetCache {
 				try {
 					response = await fetch(this.source, fetchOptions);
 
-					if (response.ok) {
+					if (response?.ok) {
 						metadata.response = {
 							url: response.url,
 							status: response.status,
