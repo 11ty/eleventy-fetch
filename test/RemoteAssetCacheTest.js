@@ -233,7 +233,7 @@ test("Error with `cause`", async (t) => {
 	} catch (e) {
 		t.is(
 			e.message,
-			`Bad response for https://example.com/207115/photos/243-0-1.jpg (404): Not Found`,
+			`Bad response for https://example.com/207115/photos/243-0-1.jpg: fetch failed`,
 		);
 		t.truthy(e.cause);
 	} finally {
