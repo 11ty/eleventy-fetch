@@ -17,7 +17,7 @@ test("Queue without options", async (t) => {
 });
 
 test("Double Fetch", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
+	let pngUrl = "https://www.11ty.dev/img/possum.png";
 	let ac1 = Cache(pngUrl);
 	let ac2 = Cache(pngUrl);
 
@@ -35,7 +35,7 @@ test("Double Fetch", async (t) => {
 });
 
 test("Double Fetch (dry run)", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017-88.png";
+	let pngUrl = "https://www.11ty.dev/img/possum.png";
 	let ac1 = Cache(pngUrl, { dryRun: true });
 	let ac2 = Cache(pngUrl, { dryRun: true });
 
@@ -119,7 +119,7 @@ test("Docs example https://www.11ty.dev/docs/plugins/fetch/#manually-store-your-
 });
 
 test("Raw Fetch using queue method", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=1";
+	let pngUrl = "https://www.11ty.dev/img/possum.png?q=1";
 	let ac1 = Fetch(pngUrl);
 	let ac2 = Fetch(pngUrl);
 
@@ -154,7 +154,7 @@ test("Raw Fetch using queue method", async (t) => {
 
 
 test("Raw Fetch using fetch method", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=2";
+	let pngUrl = "https://www.11ty.dev/img/possum.png?q=2";
 	let ac1 = Fetch(pngUrl);
 	let ac2 = Fetch(pngUrl);
 
@@ -187,7 +187,7 @@ test("Raw Fetch using fetch method", async (t) => {
 });
 
 test("Raw Fetch using fetch method (check parallel fetch promise reuse)", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017.png?q=3";
+	let pngUrl = "https://www.11ty.dev/img/possum.png?q=3";
 	let ac1 = Fetch(pngUrl);
 	let ac2 = Fetch(pngUrl);
 

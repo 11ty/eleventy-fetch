@@ -110,7 +110,7 @@ test("Unique hashes for different HTTP bodies", async (t) => {
 });
 
 test("Fetching!", async (t) => {
-	let pngUrl = "https://www.zachleat.com/img/avatar-2017-big.png";
+	let pngUrl = "https://www.11ty.dev/img/possum.png";
 	let ac = new RemoteAssetCache(pngUrl);
 	let buffer = await ac.fetch();
 	try {
@@ -122,7 +122,7 @@ test("Fetching!", async (t) => {
 });
 
 test("Fetching (dry run)!", async (t) => {
-	let svgUrl = "https://www.zachleat.com/img/avatar-2017-88.png";
+	let svgUrl = "https://www.11ty.dev/img/possum.png";
 	let ac = new RemoteAssetCache(svgUrl, ".cache", {
 		dryRun: true,
 	});
@@ -133,7 +133,7 @@ test("Fetching (dry run)!", async (t) => {
 });
 
 test("Fetching pass in URL", async (t) => {
-	let pngUrl = new URL("https://www.zachleat.com/img/avatar-2017-big.png");
+	let pngUrl = new URL("https://www.11ty.dev/img/possum.png");
 	let ac = new RemoteAssetCache(pngUrl);
 	let buffer = await ac.fetch();
 	try {
@@ -160,7 +160,7 @@ test("Fetching pass non-stringable", async (t) => {
 test("Fetching pass class with toString()", async (t) => {
 	class B {
 		toString() {
-			return "https://www.zachleat.com/img/avatar-2017-big.png";
+			return "https://www.11ty.dev/img/possum.png";
 		}
 	}
 
@@ -225,7 +225,7 @@ test("Issue #6, URLs with HTTP Auth", async (t) => {
 });
 
 test("Error with `cause`", async (t) => {
-	let finalUrl = "https://zachleat.com/207115/photos/243-0-1.jpg";
+	let finalUrl = "https://www.11ty.dev/img/possum-asldkfjaklsdf.png";
 	let asset = new RemoteAssetCache(finalUrl);
 
 	try {
@@ -233,7 +233,7 @@ test("Error with `cause`", async (t) => {
 	} catch (e) {
 		t.is(
 			e.message,
-			`Bad response for https://zachleat.com/207115/photos/243-0-1.jpg (404): Not Found`,
+			`Bad response for https://www.11ty.dev/img/possum-asldkfjaklsdf.png (404): Not Found`,
 		);
 		t.truthy(e.cause);
 	} finally {
