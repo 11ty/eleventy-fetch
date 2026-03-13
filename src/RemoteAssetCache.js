@@ -187,7 +187,7 @@ class RemoteAssetCache extends AssetCache {
 					error = e;
 				}
 
-				if(!response.ok || error) {
+				if(!response?.ok || error) {
 					let errorMessage = response?.status || response?.statusText ? ` (${response?.status}): ${response.statusText}` : `: ${error.message}`;
 					throw new Error(`Bad response for ${this.displayUrl}${errorMessage}`, {
 						cause: error || response
